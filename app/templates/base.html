@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}FoodApp{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="{{ url_for('main.index') }}">FoodApp</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ms-auto">
+                {% if current_user.is_authenticated %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('main.profile') }}">Perfil</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('main.logout') }}">Sair</a></li>
+                {% else %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('main.login') }}">Login</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('main.register') }}">Registar</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-info">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer class="bg-dark text-white text-center mt-4 p-3">
+        <p><a href="{{ url_for('main.about') }}" class="text-white">Quem Somos</a> | <a
+                href="{{ url_for('main.contact') }}" class="text-white">Contactos</a></p>
+    </footer>
+</body>
+
+</html>

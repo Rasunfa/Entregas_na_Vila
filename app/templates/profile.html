@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Perfil{% endblock %}
+{% block content %}
+<h2>Perfil de {{ current_user.username }}</h2>
+<p>Tipo de Conta: {{ current_user.user_type }}</p>
+
+{% if current_user.user_type == 'client' %}
+<a href="{{ url_for('main.list_restaurants') }}" class="btn btn-primary">Explorar Restaurantes</a>
+<a href="{{ url_for('main.order_history') }}" class="btn btn-secondary">Histórico de Pedidos</a>
+{% elif current_user.user_type == 'restaurant' %}
+<a href="{{ url_for('main.manage_menus') }}" class="btn btn-primary">Gerenciar Menus</a>
+<a href="{{ url_for('main.restaurant_orders') }}" class="btn btn-secondary">Pedidos Recebidos</a>
+{% endif %}
+{% endblock %}
