@@ -1,0 +1,13 @@
+<h2>Meus Menus</h2>
+<a href="{{ url_for('main.create_menu') }}">Adicionar Novo Prato</a>
+<ul>
+{% for menu in menus %}
+    <li>
+        {{ menu[2] }} - €{{ menu[4] }}
+        <a href="{{ url_for('main.edit_menu', menu_id=menu[0]) }}">Editar</a>
+        <form method="POST" action="{{ url_for('main.delete_menu', menu_id=menu[0]) }}">
+            <button type="submit">Apagar</button>
+        </form>
+    </li>
+{% endfor %}
+</ul>

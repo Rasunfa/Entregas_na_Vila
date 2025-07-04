@@ -1,0 +1,14 @@
+<h2>Menus Disponíveis</h2>
+<ul>
+{% for menu in menus %}
+    <li>{{ menu[2] }} - €{{ menu[4] }} <br> {{ menu[3] }}</li>
+{% endfor %}
+</ul>
+
+<h3>Fazer Pedido</h3>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    {{ form.menu_id.label }} {{ form.menu_id() }} <br>
+    {{ form.notes.label }} {{ form.notes() }} <br>
+    {{ form.submit() }}
+</form>

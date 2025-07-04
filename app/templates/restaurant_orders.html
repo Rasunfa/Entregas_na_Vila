@@ -1,0 +1,16 @@
+<h2>Pedidos Recebidos</h2>
+<ul>
+{% for order in orders %}
+    <li>
+        Cliente: {{ order[1] }} | Prato: {{ order[2] }} | Notas: {{ order[3] }} | Estado: {{ order[4] }}
+        <form method="POST" action="{{ url_for('main.update_order_status', order_id=order[0]) }}">
+            <select name="status">
+                <option value="pending" {% if order[4] == 'pending' %}selected{% endif %}>Pendente</option>
+                <option value="accepted" {% if order[4] == 'accepted' %}selected{% endif %}>Aceite</option>
+                <option value="ready" {% if order[4] == 'ready' %}selected{% endif %}>Pronto</option>
+            </select>
+            <button type="submit">Atualizar</button>
+        </form>
+    </li>
+{% endfor %}
+</ul>

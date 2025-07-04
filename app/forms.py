@@ -14,3 +14,14 @@ class LoginForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Entrar')
+
+class MenuForm(FlaskForm):
+    name = StringField('Nome do Prato', validators=[DataRequired(), Length(max=150)])
+    description = TextAreaField('Descrição', validators=[DataRequired()])
+    price = StringField('Preço', validators=[DataRequired()])
+    submit = SubmitField('Salvar')
+
+class OrderForm(FlaskForm):
+    menu_id = SelectField('Prato', coerce=int, validators=[DataRequired()])
+    notes = TextAreaField('Notas', validators=[Length(max=500)])
+    submit = SubmitField('Fazer Pedido')
