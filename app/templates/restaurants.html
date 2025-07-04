@@ -1,0 +1,10 @@
+<form method="POST" class="mb-3">
+    <input type="text" name="location" placeholder="Procurar por localização" class="form-control" value="{{ search or '' }}">
+    <button type="submit" class="btn btn-primary mt-2">Procurar</button>
+</form>
+
+<ul>
+{% for restaurant in restaurants %}
+    <li>{{ restaurant[1] }} ({{ restaurant[2] }}) - <a href="{{ url_for('main.view_menus', restaurant_id=restaurant[0]) }}">Ver Menus</a></li>
+{% endfor %}
+</ul>

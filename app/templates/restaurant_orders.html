@@ -14,3 +14,18 @@
     </li>
 {% endfor %}
 </ul>
+
+<script>
+function checkNewOrders() {
+    fetch("{{ url_for('main.orders_json') }}")
+    .then(response => response.json())
+    .then(data => {
+        const badge = document.getElementById("order-badge");
+        badge.innerText = data.pending;
+    });
+}
+
+setInterval(checkNewOrders, 5000); // a cada 5 segundos
+</script>
+
+<span>Pedidos Pendentes: <span id="order-badge">0</span></span>

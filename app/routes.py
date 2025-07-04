@@ -183,3 +183,24 @@ def update_order_status(order_id):
     mysql.connection.commit()
     cursor.close()
     return redirect(url_for("main.restaurant_orders"))
+
+@bp.route("/restaurants/search", methods=["GET", "POST"])
+@login_required
+def search_restaurants():
+    query = request.form.get("location")
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT id, username, location FROM users WHERE user_type='restaurant' AND location LIKE %s", (f"%{query}%",))
+    restaurants = cursor.fetchall()
+    cursor.close()
+    return render_template("restaurants.html", restaurants=restaurants, search=query)
+
+@bp.route("/restaurant/orders/json")
+@login_required
+def orders_json():
+    if current_user.user_type != 'restaurant':
+        return "Acesso Negado", 403
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT COUNT(*) FROM orders WHERE restaurant_id = %s AND status = 'pending'", (current_user.id,))
+    pending = cursor.fetchone()[0]
+    cursor.close()
+    return {"pending": pending}
