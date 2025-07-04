@@ -4,6 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from app import mysql
 from app.models import User
 from app.forms import RegistrationForm, LoginForm
+from forms import MenuForm, OrderForm
 
 bp = Blueprint('main', __name__)
 
