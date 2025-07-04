@@ -1,10 +1,10 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import mysql
 from app.models import User
 from app.forms import RegistrationForm, LoginForm
-from forms import MenuForm, OrderForm
+from app.forms import MenuForm, OrderForm
+from app import mysql
 
 bp = Blueprint('main', __name__)
 
@@ -16,20 +16,24 @@ def home():
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        hashed_pw = generate_password_hash(form.password.data)
-        cursor = mysql.connection.cursor()
-        cursor.execute("INSERT INTO users (username, email, password_hash, user_type, location) VALUES (%s, %s, %s, %s, %s)",
-                       (form.username.data, form.email.data, hashed_pw, form.user_type.data, form.location.data))
-        mysql.connection.commit()
-        cursor.close()
-        flash("Conta criada com sucesso!", "success")
-        return redirect(url_for("main.login"))
+        if form.password.data:
+            hashed_pw = generate_password_hash(form.password.data)
+            cursor = mysql.connection.cursor()
+            cursor.execute("INSERT INTO users (username, email, password_hash, user_type, location) VALUES (%s, %s, %s, %s, %s)",
+                           (form.username.data, form.email.data, hashed_pw, form.user_type.data, form.location.data))
+            mysql.connection.commit()
+            cursor.close()
+            flash("Conta criada com sucesso!", "success")
+            return redirect(url_for("main.login"))
+        else:
+            flash("Password is required.", "danger")
+            return render_template("register.html", form=form)
     return render_template("register.html", form=form)
 
 @bp.route("/login", methods=["GET", "POST"])
 def login():
     form = LoginForm()
-    if form.validate_on_submit():
+    if form.validate_on_submit() and form.email.data and form.password.data:
         cursor = mysql.connection.cursor()
         cursor.execute("SELECT * FROM users WHERE email = %s", (form.email.data,))
         user = cursor.fetchone()
