@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Menu Item - Delivery System{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Edit Menu Item</h2>
+    <form method="POST">
+        <div class="form-group">
+            <label for="name">Item Name:</label>
+            <input type="text" id="name" name="name" value="{{ menu_item.name }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description:</label>
+            <textarea id="description" name="description">{{ menu_item.description or '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="price">Price:</label>
+            <input type="number" id="price" name="price" step="0.01" min="0" value="{{ menu_item.price }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="category">Category:</label>
+            <input type="text" id="category" name="category" value="{{ menu_item.category or '' }}">
+        </div>
+
+        <div class="form-group">
+            <label>
+                <input type="checkbox" name="available" {% if menu_item.available %}checked{% endif %}>
+                Available for ordering
+            </label>
+        </div>
+
+        <button type="submit" class="btn btn-success">Update Item</button>
+        <a href="{{ url_for('restaurant_dashboard') }}" class="btn">Cancel</a>
+    </form>
+</div>
+{% endblock %}

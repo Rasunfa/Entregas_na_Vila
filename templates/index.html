@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card text-center">
+    <h1>Welcome to Delivery System</h1>
+    <p>Order food from your favorite restaurants or manage your restaurant orders.</p>
+
+    {% if not session.user_id %}
+    <div class="mt-20">
+        <a href="{{ url_for('register') }}" class="btn btn-success">Register Now</a>
+        <a href="{{ url_for('login') }}" class="btn">Login</a>
+    </div>
+    {% else %}
+    <div class="mt-20">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-success">Go to Dashboard</a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="grid">
+    <div class="card">
+        <h3>For Customers</h3>
+        <p>Browse restaurants, view menus, place orders, and track your delivery status.</p>
+        <ul>
+            <li>Browse local restaurants</li>
+            <li>View detailed menus</li>
+            <li>Place orders easily</li>
+            <li>Track order status</li>
+            <li>View order history</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h3>For Restaurants</h3>
+        <p>Manage your restaurant, update menus, receive orders, and track deliveries.</p>
+        <ul>
+            <li>Manage restaurant profile</li>
+            <li>Add/edit menu items</li>
+            <li>Receive customer orders</li>
+            <li>Update order status</li>
+            <li>Track delivery progress</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

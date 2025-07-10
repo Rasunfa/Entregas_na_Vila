@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}{{ restaurant.restaurant_name }} - Menu{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>{{ restaurant.restaurant_name or restaurant.username }}</h2>
+    {% if restaurant.restaurant_description %}
+    <p>{{ restaurant.restaurant_description }}</p>
+    {% endif %}
+    <a href="{{ url_for('customer_dashboard') }}" class="btn">← Back to Restaurants</a>
+</div>
+
+<div class="card">
+    <h3>Menu</h3>
+    {% if menu_items %}
+    <div class="grid">
+        {% for item in menu_items %}
+        <div class="menu-item">
+            <h4>{{ item.name }}</h4>
+            {% if item.description %}
+            <p>{{ item.description }}</p>
+            {% endif %}
+            <div class="price">${{ "%.2f"|format(item.price) }}</div>
+            {% if item.category %}
+            <p><strong>Category:</strong> {{ item.category }}</p>
+            {% endif %}
+
+            <form method="POST" action="{{ url_for('add_to_cart') }}">
+                <input type="hidden" name="menu_item_id" value="{{ item.id }}">
+                <div class="form-group">
+                    <label for="quantity_{{ item.id }}">Quantity:</label>
+                    <input type="number" id="quantity_{{ item.id }}" name="quantity" value="1" min="1" max="10"
+                        style="width: 80px;">
+                </div>
+                <button type="submit" class="btn btn-success">Add to Cart</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>No menu items available.</p>
+    {% endif %}
+</div>
+{% endblock %}

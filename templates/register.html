@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Register - Delivery System{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Register</h2>
+    <form method="POST">
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+
+        <div class="form-group">
+            <label for="user_type">I am a:</label>
+            <select id="user_type" name="user_type" required onchange="toggleRestaurantFields()">
+                <option value="">Select...</option>
+                <option value="customer">Customer</option>
+                <option value="restaurant">Restaurant Owner</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="phone">Phone:</label>
+            <input type="text" id="phone" name="phone">
+        </div>
+
+        <div class="form-group">
+            <label for="address">Address:</label>
+            <textarea id="address" name="address"></textarea>
+        </div>
+
+        <div id="restaurant-fields" style="display: none;">
+            <div class="form-group">
+                <label for="restaurant_name">Restaurant Name:</label>
+                <input type="text" id="restaurant_name" name="restaurant_name">
+            </div>
+
+            <div class="form-group">
+                <label for="restaurant_description">Restaurant Description:</label>
+                <textarea id="restaurant_description" name="restaurant_description"></textarea>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-success">Register</button>
+        <a href="{{ url_for('login') }}" class="btn">Already have an account? Login</a>
+    </form>
+</div>
+
+<script>
+    function toggleRestaurantFields() {
+        const userType = document.getElementById('user_type').value;
+        const restaurantFields = document.getElementById('restaurant-fields');
+
+        if (userType === 'restaurant') {
+            restaurantFields.style.display = 'block';
+        } else {
+            restaurantFields.style.display = 'none';
+        }
+    }
+</script>
+{% endblock %}

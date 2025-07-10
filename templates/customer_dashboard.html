@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Customer Dashboard - Delivery System{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Welcome, {{ session.username }}!</h2>
+    <p>Choose from our available restaurants and start ordering!</p>
+</div>
+
+<div class="card">
+    <h3>Available Restaurants</h3>
+    {% if restaurants %}
+    <div class="grid">
+        {% for restaurant in restaurants %}
+        <div class="menu-item">
+            <h3>{{ restaurant.restaurant_name or restaurant.username }}</h3>
+            {% if restaurant.restaurant_description %}
+            <p>{{ restaurant.restaurant_description }}</p>
+            {% endif %}
+            <div class="mt-20">
+                <a href="{{ url_for('view_restaurant', restaurant_id=restaurant.id) }}" class="btn btn-success">View
+                    Menu</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>No restaurants available at the moment.</p>
+    {% endif %}
+</div>
+{% endblock %}
