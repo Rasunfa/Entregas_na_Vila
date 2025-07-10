@@ -38,6 +38,19 @@
         <form method="POST" action="{{ url_for('place_order') }}">
             <div class="form-group">
                 <label for="delivery_address">Delivery Address:</label>
+                {% if user_address %}
+                <div class="address-choice">
+                    <button type="button" class="btn btn-secondary" onclick="useSavedAddress()">Use Saved
+                        Address</button>
+                    <button type="button" class="btn btn-secondary" onclick="useCustomAddress()">Use Different
+                        Address</button>
+                </div>
+                <div id="saved-address-display" style="display: none;">
+                    <p><strong>Your saved address:</strong></p>
+                    <p>{{ user_address }}</p>
+                    <input type="hidden" id="saved_address" value="{{ user_address }}">
+                </div>
+                {% endif %}
                 <textarea id="delivery_address" name="delivery_address" required
                     placeholder="Enter your delivery address"></textarea>
             </div>
@@ -50,6 +63,23 @@
             <a href="{{ url_for('customer_dashboard') }}" class="btn">Continue Shopping</a>
         </form>
     </div>
+
+    {% if user_address %}
+    <script>
+        function useSavedAddress() {
+            document.getElementById('delivery_address').value = document.getElementById('saved_address').value;
+            document.getElementById('saved-address-display').style.display = 'block';
+            document.getElementById('delivery_address').readOnly = true;
+        }
+
+        function useCustomAddress() {
+            document.getElementById('delivery_address').value = '';
+            document.getElementById('saved-address-display').style.display = 'none';
+            document.getElementById('delivery_address').readOnly = false;
+            document.getElementById('delivery_address').focus();
+        }
+    </script>
+    {% endif %}
     {% else %}
     <p>Your cart is empty.</p>
     <a href="{{ url_for('customer_dashboard') }}" class="btn btn-success">Start Shopping</a>

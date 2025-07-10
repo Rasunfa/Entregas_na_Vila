@@ -257,7 +257,12 @@ def add_to_cart():
 def view_cart():
     cart = session.get('cart', [])
     total = sum(item['price'] * item['quantity'] for item in cart)
-    return render_template('cart.html', cart=cart, total=total)
+    
+    # Get user's saved address
+    user = get_user_by_id(session['user_id'])
+    user_address = user['address'] if user else ''
+    
+    return render_template('cart.html', cart=cart, total=total, user_address=user_address)
 
 @app.route('/place_order', methods=['POST'])
 @login_required
