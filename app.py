@@ -466,6 +466,42 @@ def order_details(order_id):
     
     return render_template('order_details.html', order=order, order_items=order_items)
 
+@app.route('/delete_account', methods=['POST'])
+@login_required
+def delete_account():
+    user_id = session['user_id']
+    user = get_user_by_id(user_id)
+    if not user:
+        flash('User not found!')
+        return redirect(url_for('dashboard'))
+
+    conn = get_db_connection()
+    try:
+        if user['user_type'] == 'restaurant':
+            # Delete order items for this restaurant's orders
+            conn.execute('DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE restaurant_id = ?)', (user_id,))
+            # Delete menu items
+            conn.execute('DELETE FROM menu_items WHERE restaurant_id = ?', (user_id,))
+            # Delete orders
+            conn.execute('DELETE FROM orders WHERE restaurant_id = ?', (user_id,))
+        else:
+            # Customer: delete order items for their orders
+            conn.execute('DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE customer_id = ?)', (user_id,))
+            # Delete orders
+            conn.execute('DELETE FROM orders WHERE customer_id = ?', (user_id,))
+        # Delete user
+        conn.execute('DELETE FROM users WHERE id = ?', (user_id,))
+        conn.commit()
+        session.clear()
+        flash('Your account and all related data have been deleted.')
+        return redirect(url_for('index'))
+    except Exception as e:
+        conn.rollback()
+        flash('Error deleting account. Please try again.')
+        return redirect(url_for('dashboard'))
+    finally:
+        conn.close()
+
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)
