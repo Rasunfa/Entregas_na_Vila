@@ -47,6 +47,7 @@ def init_db():
         total_amount REAL NOT NULL,
         status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'preparing', 'out_for_delivery', 'delivered', 'cancelled')),
         delivery_address TEXT NOT NULL,
+        observations TEXT,
         order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (customer_id) REFERENCES users (id),
         FOREIGN KEY (restaurant_id) REFERENCES users (id)
@@ -62,6 +63,13 @@ def init_db():
         FOREIGN KEY (order_id) REFERENCES orders (id),
         FOREIGN KEY (menu_item_id) REFERENCES menu_items (id)
     )''')
+    
+    # Add observations column if it doesn't exist (migration)
+    try:
+        c.execute('ALTER TABLE orders ADD COLUMN observations TEXT')
+    except sqlite3.OperationalError:
+        # Column already exists
+        pass
     
     conn.commit()
     conn.close()
@@ -260,6 +268,7 @@ def place_order():
         return redirect(url_for('customer_dashboard'))
     
     delivery_address = request.form['delivery_address']
+    observations = request.form.get('observations', '')
     if not delivery_address:
         flash('Delivery address is required!')
         return redirect(url_for('view_cart'))
@@ -280,9 +289,9 @@ def place_order():
             
             # Create order
             cursor = conn.execute('''INSERT INTO orders 
-                                   (customer_id, restaurant_id, total_amount, delivery_address)
-                                   VALUES (?, ?, ?, ?)''',
-                                 (session['user_id'], restaurant_id, total_amount, delivery_address))
+                                   (customer_id, restaurant_id, total_amount, delivery_address, observations)
+                                   VALUES (?, ?, ?, ?, ?)''',
+                                 (session['user_id'], restaurant_id, total_amount, delivery_address, observations))
             order_id = cursor.lastrowid
             
             # Add order items

@@ -56,6 +56,9 @@
         </div>
         <div class="mt-20">
             <p><strong>Delivery Address:</strong> {{ order.delivery_address }}</p>
+            {% if order.observations %}
+            <p><strong>Special Instructions:</strong> {{ order.observations }}</p>
+            {% endif %}
             <a href="{{ url_for('order_details', order_id=order.id) }}" class="btn">View Details</a>
 
             {% if order.status == 'pending' %}

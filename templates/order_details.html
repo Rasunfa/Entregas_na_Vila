@@ -14,6 +14,9 @@
                     }}</span></p>
             <p><strong>Total Amount:</strong> ${{ "%.2f"|format(order.total_amount) }}</p>
             <p><strong>Delivery Address:</strong> {{ order.delivery_address }}</p>
+            {% if order.observations %}
+            <p><strong>Special Instructions:</strong> {{ order.observations }}</p>
+            {% endif %}
         </div>
 
         <div>

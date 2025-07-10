@@ -41,6 +41,11 @@
                 <textarea id="delivery_address" name="delivery_address" required
                     placeholder="Enter your delivery address"></textarea>
             </div>
+            <div class="form-group">
+                <label for="observations">Special Instructions (Optional):</label>
+                <textarea id="observations" name="observations"
+                    placeholder="Any special instructions for your order (e.g., no onions, extra spicy, delivery instructions, etc.)"></textarea>
+            </div>
             <button type="submit" class="btn btn-success">Place Order</button>
             <a href="{{ url_for('customer_dashboard') }}" class="btn">Continue Shopping</a>
         </form>
