@@ -159,7 +159,17 @@ def load_logged_in_user():
 
 # Routes
 @app.route('/')
+def welcome():
+    return render_template('welcome.html')
+
+@app.route('/index')
 def index():
+    # This is the original index logic
+    if 'user_id' in session:
+        if session.get('user_type') == 'restaurant':
+            return redirect(url_for('restaurant_dashboard'))
+        else:
+            return redirect(url_for('customer_dashboard'))
     return render_template('index.html')
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -260,7 +270,7 @@ def login():
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('index'))
+    return redirect(url_for('welcome'))
 
 @app.route('/dashboard')
 @login_required
@@ -613,7 +623,7 @@ def delete_account():
         conn.commit()
         session.clear()
         flash('Your account and all related data have been deleted.')
-        return redirect(url_for('index'))
+        return redirect(url_for('welcome'))
     except Exception as e:
         conn.rollback()
         flash('Error deleting account. Please try again.')

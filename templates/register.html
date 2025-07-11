@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}Register - Delivery System{% endblock %}
+{% block title %}Registar - Entregas na Vila{% endblock %}
 
 {% block content %}
 <div class="card">
-    <h2>Register</h2>
+    <h2>Registar</h2>
     <form method="POST">
         <div class="form-group">
-            <label for="username">Username:</label>
+            <label for="username">Nome de utilizador:</label>
             <input type="text" id="username" name="username" required>
         </div>
 
@@ -17,37 +17,37 @@
         </div>
 
         <div class="form-group">
-            <label for="password">Password:</label>
+            <label for="password">Palavra-passe:</label>
             <input type="password" id="password" name="password" required>
         </div>
 
         <div class="form-group">
-            <label for="user_type">I am a:</label>
+            <label for="user_type">Sou um:</label>
             <select id="user_type" name="user_type" required onchange="toggleRestaurantFields()">
-                <option value="">Select...</option>
-                <option value="customer">Customer</option>
-                <option value="restaurant">Restaurant Owner</option>
+                <option value="">Selecionar...</option>
+                <option value="customer">Cliente</option>
+                <option value="restaurant">Proprietário de Restaurante</option>
             </select>
         </div>
 
         <div class="form-group">
-            <label for="phone">Phone:</label>
+            <label for="phone">Telefone:</label>
             <input type="text" id="phone" name="phone">
         </div>
 
         <div class="form-group">
-            <label for="address">Address:</label>
+            <label for="address">Morada:</label>
             <textarea id="address" name="address"></textarea>
         </div>
 
         <div id="restaurant-fields" style="display: none;">
             <div class="form-group">
-                <label for="restaurant_name">Restaurant Name:</label>
+                <label for="restaurant_name">Nome do Restaurante:</label>
                 <input type="text" id="restaurant_name" name="restaurant_name">
             </div>
 
             <div class="form-group">
-                <label for="restaurant_description">Restaurant Description:</label>
+                <label for="restaurant_description">Descrição do Restaurante:</label>
                 <textarea id="restaurant_description" name="restaurant_description"></textarea>
             </div>
         </div>
@@ -56,8 +56,8 @@
             <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"></div>
         </div>
 
-        <button type="submit" class="btn btn-success">Register</button>
-        <a href="{{ url_for('login') }}" class="btn">Already have an account? Login</a>
+        <button type="submit" class="btn btn-success">Registar</button>
+        <a href="{{ url_for('login') }}" class="btn">Já tem conta? Entrar</a>
     </form>
 </div>
 

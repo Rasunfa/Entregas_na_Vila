@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 
-{% block title %}Shopping Cart - Delivery System{% endblock %}
+{% block title %}Carrinho de Compras - Entregas na Vila{% endblock %}
 
 {% block content %}
 <div class="card">
-    <h2>Shopping Cart</h2>
+    <h2>Carrinho de Compras</h2>
 
     {% if cart %}
     <table>
         <thead>
             <tr>
                 <th>Item</th>
-                <th>Price</th>
-                <th>Quantity</th>
+                <th>Preço</th>
+                <th>Quantidade</th>
                 <th>Subtotal</th>
             </tr>
         </thead>
@@ -20,16 +20,16 @@
             {% for item in cart %}
             <tr>
                 <td>{{ item.name }}</td>
-                <td>${{ "%.2f"|format(item.price) }}</td>
+                <td>€{{ "%.2f"|format(item.price) }}</td>
                 <td>{{ item.quantity }}</td>
-                <td>${{ "%.2f"|format(item.price * item.quantity) }}</td>
+                <td>€{{ "%.2f"|format(item.price * item.quantity) }}</td>
             </tr>
             {% endfor %}
         </tbody>
         <tfoot>
             <tr>
                 <th colspan="3">Total:</th>
-                <th>${{ "%.2f"|format(total) }}</th>
+                <th>€{{ "%.2f"|format(total) }}</th>
             </tr>
         </tfoot>
     </table>
@@ -37,30 +37,30 @@
     <div class="mt-20">
         <form method="POST" action="{{ url_for('place_order') }}">
             <div class="form-group">
-                <label for="delivery_address">Delivery Address:</label>
+                <label for="delivery_address">Morada de Entrega:</label>
                 {% if user_address %}
                 <div class="address-choice">
-                    <button type="button" class="btn btn-secondary" onclick="useSavedAddress()">Use Saved
-                        Address</button>
-                    <button type="button" class="btn btn-secondary" onclick="useCustomAddress()">Use Different
-                        Address</button>
+                    <button type="button" class="btn btn-secondary" onclick="useSavedAddress()">Usar Morada
+                        Guardada</button>
+                    <button type="button" class="btn btn-secondary" onclick="useCustomAddress()">Usar Morada
+                        Diferente</button>
                 </div>
                 <div id="saved-address-display" style="display: none;">
-                    <p><strong>Your saved address:</strong></p>
+                    <p><strong>A sua morada guardada:</strong></p>
                     <p>{{ user_address }}</p>
                     <input type="hidden" id="saved_address" value="{{ user_address }}">
                 </div>
                 {% endif %}
                 <textarea id="delivery_address" name="delivery_address" required
-                    placeholder="Enter your delivery address"></textarea>
+                    placeholder="Introduza a sua morada de entrega"></textarea>
             </div>
             <div class="form-group">
-                <label for="observations">Special Instructions (Optional):</label>
+                <label for="observations">Instruções Especiais (Opcional):</label>
                 <textarea id="observations" name="observations"
-                    placeholder="Any special instructions for your order (e.g., no onions, extra spicy, delivery instructions, etc.)"></textarea>
+                    placeholder="Qualquer instrução especial para a sua encomenda (ex: sem cebolas, extra picante, instruções de entrega, etc.)"></textarea>
             </div>
-            <button type="submit" class="btn btn-success">Place Order</button>
-            <a href="{{ url_for('customer_dashboard') }}" class="btn">Continue Shopping</a>
+            <button type="submit" class="btn btn-success">Fazer Encomenda</button>
+            <a href="{{ url_for('customer_dashboard') }}" class="btn">Continuar a Comprar</a>
         </form>
     </div>
 
@@ -81,8 +81,8 @@
     </script>
     {% endif %}
     {% else %}
-    <p>Your cart is empty.</p>
-    <a href="{{ url_for('customer_dashboard') }}" class="btn btn-success">Start Shopping</a>
+    <p>O seu carrinho está vazio.</p>
+    <a href="{{ url_for('customer_dashboard') }}" class="btn btn-success">Começar a Comprar</a>
     {% endif %}
 </div>
 {% endblock %}

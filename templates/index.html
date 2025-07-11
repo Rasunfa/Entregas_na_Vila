@@ -2,43 +2,43 @@
 
 {% block content %}
 <div class="card text-center">
-    <h1>Welcome to Delivery System</h1>
-    <p>Order food from your favorite restaurants or manage your restaurant orders.</p>
+    <h1>Bem-vindo a Entregas na Vila</h1>
+    <p>Encomende comida dos seus restaurantes favoritos ou gira as encomendas do seu restaurante.</p>
 
     {% if not session.user_id %}
     <div class="mt-20">
-        <a href="{{ url_for('register') }}" class="btn btn-success">Register Now</a>
-        <a href="{{ url_for('login') }}" class="btn">Login</a>
+        <a href="{{ url_for('register') }}" class="btn btn-success">Registar Agora</a>
+        <a href="{{ url_for('login') }}" class="btn">Entrar</a>
     </div>
     {% else %}
     <div class="mt-20">
-        <a href="{{ url_for('dashboard') }}" class="btn btn-success">Go to Dashboard</a>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-success">Ir para o Painel</a>
     </div>
     {% endif %}
 </div>
 
 <div class="grid">
     <div class="card">
-        <h3>For Customers</h3>
-        <p>Browse restaurants, view menus, place orders, and track your delivery status.</p>
+        <h3>Para Clientes</h3>
+        <p>Navegue pelos restaurantes, veja menus, faça encomendas e acompanhe o estado da sua entrega.</p>
         <ul>
-            <li>Browse local restaurants</li>
-            <li>View detailed menus</li>
-            <li>Place orders easily</li>
-            <li>Track order status</li>
-            <li>View order history</li>
+            <li>Navegar por restaurantes locais</li>
+            <li>Ver menus detalhados</li>
+            <li>Fazer encomendas facilmente</li>
+            <li>Acompanhar estado da encomenda</li>
+            <li>Ver histórico de encomendas</li>
         </ul>
     </div>
 
     <div class="card">
-        <h3>For Restaurants</h3>
-        <p>Manage your restaurant, update menus, receive orders, and track deliveries.</p>
+        <h3>Para Restaurantes</h3>
+        <p>Faça a gestão do seu restaurante, atualize menus, receba encomendas e acompanhe entregas.</p>
         <ul>
-            <li>Manage restaurant profile</li>
-            <li>Add/edit menu items</li>
-            <li>Receive customer orders</li>
-            <li>Update order status</li>
-            <li>Track delivery progress</li>
+            <li>Gerir perfil do restaurante</li>
+            <li>Adicionar/editar itens do menu</li>
+            <li>Receber encomendas de clientes</li>
+            <li>Atualizar o estado das encomendas</li>
+            <li>Acompanhar o progresso das entregas</li>
         </ul>
     </div>
 </div>
