@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, flash, g
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 from datetime import datetime
@@ -14,8 +14,10 @@ from PIL import Image
 
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 RECAPTCHA_SECRET_KEY = "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe"
+RECAPTCHA_SITE_KEY = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"  # Test site key
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -26,7 +28,7 @@ app.secret_key = secrets.token_hex(32)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # 2MB max upload size
 app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SECURE'] = True  # Set to True in production (requires HTTPS)
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production (requires HTTPS)
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 limiter = Limiter(get_remote_address, app=app, default_limits=["200 per day", "50 per hour"])
 
@@ -147,6 +149,14 @@ def restaurant_required(f):
     decorated_function.__name__ = f.__name__
     return decorated_function
 
+@app.before_request
+def load_logged_in_user():
+    user_id = session.get('user_id')
+    if user_id is None:
+        g.user = None
+    else:
+        g.user = get_user_by_id(user_id)
+
 # Routes
 @app.route('/')
 def index():
@@ -265,7 +275,7 @@ def dashboard():
 @login_required
 def customer_dashboard():
     conn = get_db_connection()
-    restaurants = conn.execute('''SELECT id, username, restaurant_name, restaurant_description 
+    restaurants = conn.execute('''SELECT id, username, restaurant_name, restaurant_description, image_path 
                                  FROM users WHERE user_type = 'restaurant' ''').fetchall()
     conn.close()
     return render_template('customer_dashboard.html', restaurants=restaurants)
@@ -432,7 +442,7 @@ def add_menu_item():
         image_path = None
         if 'image' in request.files:
             file = request.files['image']
-            if file and allowed_file(file.filename):
+            if file and file.filename and allowed_file(file.filename):
                 # Randomize filename
                 ext = file.filename.rsplit('.', 1)[1].lower()
                 filename = f"{uuid.uuid4().hex}.{ext}"
@@ -441,7 +451,7 @@ def add_menu_item():
                 # Check MIME type using Pillow
                 try:
                     with Image.open(filepath) as img:
-                        if img.format.lower() not in ALLOWED_EXTENSIONS:
+                        if not img.format or img.format.lower() not in ALLOWED_EXTENSIONS:
                             os.remove(filepath)
                             flash('Invalid image file!')
                             return render_template('add_menu_item.html')
@@ -473,7 +483,7 @@ def edit_menu_item(item_id):
         image_path = None
         if 'image' in request.files:
             file = request.files['image']
-            if file and allowed_file(file.filename):
+            if file and file.filename and allowed_file(file.filename):
                 # Randomize filename
                 ext = file.filename.rsplit('.', 1)[1].lower()
                 filename = f"{uuid.uuid4().hex}.{ext}"
@@ -482,7 +492,7 @@ def edit_menu_item(item_id):
                 # Check MIME type using Pillow
                 try:
                     with Image.open(filepath) as img:
-                        if img.format.lower() not in ALLOWED_EXTENSIONS:
+                        if not img.format or img.format.lower() not in ALLOWED_EXTENSIONS:
                             os.remove(filepath)
                             flash('Invalid image file!')
                             return render_template('edit_menu_item.html')
@@ -621,7 +631,7 @@ def upload_restaurant_image():
     if file.filename == '':
         flash('No selected file')
         return redirect(url_for('restaurant_dashboard'))
-    if file and allowed_file(file.filename):
+    if file and file.filename and allowed_file(file.filename):
         # Randomize filename
         ext = file.filename.rsplit('.', 1)[1].lower()
         filename = f"{uuid.uuid4().hex}.{ext}"
@@ -630,14 +640,14 @@ def upload_restaurant_image():
         # Check MIME type using Pillow
         try:
             with Image.open(filepath) as img:
-                if img.format.lower() not in ALLOWED_EXTENSIONS:
+                if not img.format or img.format.lower() not in ALLOWED_EXTENSIONS:
                     os.remove(filepath)
                     flash('Invalid image file!')
                     return render_template('restaurant_dashboard')
         except Exception:
             os.remove(filepath)
             flash('Invalid image file!')
-            return render_template('restaurant_dashboard')
+            return redirect(url_for('restaurant_dashboard'))
         image_path = filepath.replace('static/', '', 1)
         conn = get_db_connection()
         conn.execute('UPDATE users SET image_path = ? WHERE id = ?', (image_path, session['user_id']))
