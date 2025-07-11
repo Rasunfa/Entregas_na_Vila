@@ -15,7 +15,7 @@
         {% for restaurant in restaurants %}
         <div class="menu-item">
             {% if restaurant.image_path %}
-            <img src="/static/{{ restaurant.image_path }}" alt="Restaurant Image"
+            <img src="{{ url_for('static', filename=restaurant.image_path) }}" alt="Restaurant Image"
                 style="max-width: 120px; max-height: 120px; display: block; margin-bottom: 10px;">
             {% endif %}
             <h3>{{ restaurant.restaurant_name or restaurant.username }}</h3>
