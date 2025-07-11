@@ -5,6 +5,10 @@
 {% block content %}
 <div class="card">
     <h2>{{ restaurant.restaurant_name or restaurant.username }}</h2>
+    {% if restaurant.image_path %}
+    <img src="/static/{{ restaurant.image_path }}" alt="Restaurant Image"
+        style="max-width: 200px; max-height: 200px; display: block; margin-bottom: 10px;">
+    {% endif %}
     {% if restaurant.restaurant_description %}
     <p>{{ restaurant.restaurant_description }}</p>
     {% endif %}
@@ -17,6 +21,10 @@
     <div class="grid">
         {% for item in menu_items %}
         <div class="menu-item">
+            {% if item.image_path %}
+            <img src="/static/{{ item.image_path }}" alt="Menu Item Image"
+                style="max-width: 120px; max-height: 120px; display: block; margin-bottom: 10px;">
+            {% endif %}
             <h4>{{ item.name }}</h4>
             {% if item.description %}
             <p>{{ item.description }}</p>

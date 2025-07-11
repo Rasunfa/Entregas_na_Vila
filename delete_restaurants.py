@@ -72,18 +72,15 @@ def delete_restaurants():
         
         # Delete order items first (they reference menu_items and orders)
         print("Deleting order items...")
-        conn.execute('DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE restaurant_id IN ({}))'.format(
-            ','.join('?' * len(restaurant_ids))), restaurant_ids)
-        
-        # Delete menu items
-        print("Deleting menu items...")
-        conn.execute('DELETE FROM menu_items WHERE restaurant_id IN ({})'.format(
-            ','.join('?' * len(restaurant_ids))), restaurant_ids)
-        
-        # Delete orders
-        print("Deleting orders...")
-        conn.execute('DELETE FROM orders WHERE restaurant_id IN ({})'.format(
-            ','.join('?' * len(restaurant_ids))), restaurant_ids)
+        if restaurant_ids:
+            placeholders = ','.join(['?'] * len(restaurant_ids))
+            conn.execute(f'DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE restaurant_id IN ({placeholders}))', restaurant_ids)
+            # Delete menu items
+            print("Deleting menu items...")
+            conn.execute(f'DELETE FROM menu_items WHERE restaurant_id IN ({placeholders})', restaurant_ids)
+            # Delete orders
+            print("Deleting orders...")
+            conn.execute(f'DELETE FROM orders WHERE restaurant_id IN ({placeholders})', restaurant_ids)
         
         # Finally, delete restaurant users
         print("Deleting restaurant user accounts...")

@@ -6,6 +6,20 @@
 <div class="card">
     <h2>Restaurant Dashboard</h2>
     <p>Welcome, {{ session.username }}!</p>
+    {% if session.user_type == 'restaurant' and session.user_id %}
+    <form method="POST" action="{{ url_for('upload_restaurant_image') }}" enctype="multipart/form-data"
+        style="margin-bottom: 20px;">
+        <label for="restaurant_image">Restaurant Image:</label>
+        <input type="file" id="restaurant_image" name="image" accept="image/*">
+        <button type="submit" class="btn btn-secondary">Upload/Change Image</button>
+        {% if g.user and g.user.image_path %}
+        <div class="mt-20">
+            <img src="/static/{{ g.user.image_path }}" alt="Restaurant Image"
+                style="max-width: 200px; max-height: 200px;">
+        </div>
+        {% endif %}
+    </form>
+    {% endif %}
     <a href="{{ url_for('add_menu_item') }}" class="btn btn-success">Add New Menu Item</a>
 </div>
 
@@ -15,6 +29,10 @@
     <div class="grid">
         {% for item in menu_items %}
         <div class="menu-item">
+            {% if item.image_path %}
+            <img src="/static/{{ item.image_path }}" alt="Menu Item Image"
+                style="max-width: 120px; max-height: 120px; display: block; margin-bottom: 10px;">
+            {% endif %}
             <h4>{{ item.name }}</h4>
             {% if item.description %}
             <p>{{ item.description }}</p>

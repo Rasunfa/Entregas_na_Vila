@@ -3,9 +3,32 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 from datetime import datetime
 import os
+from werkzeug.utils import secure_filename
+import secrets
+import re
+import uuid
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+import requests
+from PIL import Image
+
+UPLOAD_FOLDER = os.path.join('static', 'uploads')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+RECAPTCHA_SECRET_KEY = "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe"
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-change-in-production'
+# Use a strong, random secret key. In production, load from environment variable.
+app.secret_key = secrets.token_hex(32)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # 2MB max upload size
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SECURE'] = True  # Set to True in production (requires HTTPS)
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+limiter = Limiter(get_remote_address, app=app, default_limits=["200 per day", "50 per hour"])
 
 # Database initialization
 def init_db():
@@ -71,6 +94,17 @@ def init_db():
         # Column already exists
         pass
     
+    # Add image_path column to users if it doesn't exist (migration)
+    try:
+        c.execute('ALTER TABLE users ADD COLUMN image_path TEXT')
+    except sqlite3.OperationalError:
+        pass
+    # Add image_path column to menu_items if it doesn't exist (migration)
+    try:
+        c.execute('ALTER TABLE menu_items ADD COLUMN image_path TEXT')
+    except sqlite3.OperationalError:
+        pass
+    
     conn.commit()
     conn.close()
 
@@ -119,6 +153,7 @@ def index():
     return render_template('index.html')
 
 @app.route('/register', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def register():
     if request.method == 'POST':
         username = request.form['username']
@@ -129,10 +164,22 @@ def register():
         address = request.form.get('address', '')
         restaurant_name = request.form.get('restaurant_name', '')
         restaurant_description = request.form.get('restaurant_description', '')
-        
+
         # Validation
         if not username or not email or not password:
             flash('All fields are required!')
+            return render_template('register.html')
+        # Username rules: 3-20 chars, alphanumeric and underscores only
+        if not re.match(r'^[A-Za-z0-9_]{3,20}$', username):
+            flash('Username must be 3-20 characters and contain only letters, numbers, and underscores.')
+            return render_template('register.html')
+        # Email format
+        if not re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', email):
+            flash('Invalid email address!')
+            return render_template('register.html')
+        # Password strength: min 8 chars, at least one letter and one number
+        if len(password) < 8 or not re.search(r'[A-Za-z]', password) or not re.search(r'\d', password):
+            flash('Password must be at least 8 characters long and contain both letters and numbers.')
             return render_template('register.html')
         
         # Check if user already exists
@@ -140,6 +187,18 @@ def register():
             flash('Username already exists!')
             return render_template('register.html')
         
+        recaptcha_response = request.form.get('g-recaptcha-response')
+        if not recaptcha_response:
+            flash('Please complete the CAPTCHA.')
+            return render_template('register.html')
+        recaptcha_verify = requests.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            data={'secret': RECAPTCHA_SECRET_KEY, 'response': recaptcha_response}
+        )
+        if not recaptcha_verify.json().get('success'):
+            flash('CAPTCHA verification failed. Please try again.')
+            return render_template('register.html')
+
         # Create new user
         conn = get_db_connection()
         try:
@@ -159,8 +218,21 @@ def register():
     return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("10 per minute")
 def login():
     if request.method == 'POST':
+        recaptcha_response = request.form.get('g-recaptcha-response')
+        if not recaptcha_response:
+            flash('Please complete the CAPTCHA.')
+            return render_template('login.html')
+        recaptcha_verify = requests.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            data={'secret': RECAPTCHA_SECRET_KEY, 'response': recaptcha_response}
+        )
+        if not recaptcha_verify.json().get('success'):
+            flash('CAPTCHA verification failed. Please try again.')
+            return render_template('login.html')
+        # Now proceed with username/password logic
         username = request.form['username']
         password = request.form['password']
         
@@ -357,49 +429,86 @@ def add_menu_item():
         description = request.form['description']
         price = float(request.form['price'])
         category = request.form['category']
-        
+        image_path = None
+        if 'image' in request.files:
+            file = request.files['image']
+            if file and allowed_file(file.filename):
+                # Randomize filename
+                ext = file.filename.rsplit('.', 1)[1].lower()
+                filename = f"{uuid.uuid4().hex}.{ext}"
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(filepath)
+                # Check MIME type using Pillow
+                try:
+                    with Image.open(filepath) as img:
+                        if img.format.lower() not in ALLOWED_EXTENSIONS:
+                            os.remove(filepath)
+                            flash('Invalid image file!')
+                            return render_template('add_menu_item.html')
+                except Exception:
+                    os.remove(filepath)
+                    flash('Invalid image file!')
+                    return render_template('add_menu_item.html')
+                image_path = filepath.replace('static/', '', 1)
         conn = get_db_connection()
-        conn.execute('''INSERT INTO menu_items (restaurant_id, name, description, price, category)
-                       VALUES (?, ?, ?, ?, ?)''',
-                    (session['user_id'], name, description, price, category))
+        conn.execute('''INSERT INTO menu_items (restaurant_id, name, description, price, category, image_path)
+                       VALUES (?, ?, ?, ?, ?, ?)''',
+                    (session['user_id'], name, description, price, category, image_path))
         conn.commit()
         conn.close()
-        
         flash('Menu item added successfully!')
         return redirect(url_for('restaurant_dashboard'))
-    
     return render_template('add_menu_item.html')
 
 @app.route('/edit_menu_item/<int:item_id>', methods=['GET', 'POST'])
 @restaurant_required
 def edit_menu_item(item_id):
     conn = get_db_connection()
-    
     if request.method == 'POST':
         name = request.form['name']
         description = request.form['description']
         price = float(request.form['price'])
         category = request.form['category']
         available = 'available' in request.form
-        
-        conn.execute('''UPDATE menu_items 
-                       SET name = ?, description = ?, price = ?, category = ?, available = ?
-                       WHERE id = ? AND restaurant_id = ?''',
-                    (name, description, price, category, available, item_id, session['user_id']))
+        image_path = None
+        if 'image' in request.files:
+            file = request.files['image']
+            if file and allowed_file(file.filename):
+                # Randomize filename
+                ext = file.filename.rsplit('.', 1)[1].lower()
+                filename = f"{uuid.uuid4().hex}.{ext}"
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(filepath)
+                # Check MIME type using Pillow
+                try:
+                    with Image.open(filepath) as img:
+                        if img.format.lower() not in ALLOWED_EXTENSIONS:
+                            os.remove(filepath)
+                            flash('Invalid image file!')
+                            return render_template('edit_menu_item.html')
+                except Exception:
+                    os.remove(filepath)
+                    flash('Invalid image file!')
+                    return render_template('edit_menu_item.html')
+                image_path = filepath.replace('static/', '', 1)
+        if image_path:
+            conn.execute('''UPDATE menu_items SET name = ?, description = ?, price = ?, category = ?, available = ?, image_path = ?
+                            WHERE id = ? AND restaurant_id = ?''',
+                        (name, description, price, category, available, image_path, item_id, session['user_id']))
+        else:
+            conn.execute('''UPDATE menu_items SET name = ?, description = ?, price = ?, category = ?, available = ?
+                            WHERE id = ? AND restaurant_id = ?''',
+                        (name, description, price, category, available, item_id, session['user_id']))
         conn.commit()
         conn.close()
-        
         flash('Menu item updated successfully!')
         return redirect(url_for('restaurant_dashboard'))
-    
     menu_item = conn.execute('SELECT * FROM menu_items WHERE id = ? AND restaurant_id = ?',
                             (item_id, session['user_id'])).fetchone()
     conn.close()
-    
     if not menu_item:
         flash('Menu item not found!')
         return redirect(url_for('restaurant_dashboard'))
-    
     return render_template('edit_menu_item.html', menu_item=menu_item)
 
 @app.route('/delete_menu_item/<int:item_id>')
@@ -501,6 +610,43 @@ def delete_account():
         return redirect(url_for('dashboard'))
     finally:
         conn.close()
+
+@app.route('/upload_restaurant_image', methods=['POST'])
+@restaurant_required
+def upload_restaurant_image():
+    if 'image' not in request.files:
+        flash('No file part')
+        return redirect(url_for('restaurant_dashboard'))
+    file = request.files['image']
+    if file.filename == '':
+        flash('No selected file')
+        return redirect(url_for('restaurant_dashboard'))
+    if file and allowed_file(file.filename):
+        # Randomize filename
+        ext = file.filename.rsplit('.', 1)[1].lower()
+        filename = f"{uuid.uuid4().hex}.{ext}"
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+        # Check MIME type using Pillow
+        try:
+            with Image.open(filepath) as img:
+                if img.format.lower() not in ALLOWED_EXTENSIONS:
+                    os.remove(filepath)
+                    flash('Invalid image file!')
+                    return render_template('restaurant_dashboard')
+        except Exception:
+            os.remove(filepath)
+            flash('Invalid image file!')
+            return render_template('restaurant_dashboard')
+        image_path = filepath.replace('static/', '', 1)
+        conn = get_db_connection()
+        conn.execute('UPDATE users SET image_path = ? WHERE id = ?', (image_path, session['user_id']))
+        conn.commit()
+        conn.close()
+        flash('Restaurant image updated!')
+    else:
+        flash('Invalid file type!')
+    return redirect(url_for('restaurant_dashboard'))
 
 if __name__ == '__main__':
     init_db()
