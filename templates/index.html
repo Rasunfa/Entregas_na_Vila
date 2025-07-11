@@ -1,14 +1,13 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="card text-center">
+<div class="welcome-card">
     <h1>Bem-vindo a Entregas na Vila</h1>
     <p>Encomende comida dos seus restaurantes favoritos ou gira as encomendas do seu restaurante.</p>
-
     {% if not session.user_id %}
     <div class="mt-20">
         <a href="{{ url_for('register') }}" class="btn btn-success">Registar Agora</a>
-        <a href="{{ url_for('login') }}" class="btn">Entrar</a>
+        <a href="{{ url_for('login') }}" class="btn btn-danger">Entrar</a>
     </div>
     {% else %}
     <div class="mt-20">
@@ -17,7 +16,7 @@
     {% endif %}
 </div>
 
-<div class="grid">
+<div class="index-cards">
     <div class="card">
         <h3>Para Clientes</h3>
         <p>Navegue pelos restaurantes, veja menus, faça encomendas e acompanhe o estado da sua entrega.</p>
@@ -29,7 +28,6 @@
             <li>Ver histórico de encomendas</li>
         </ul>
     </div>
-
     <div class="card">
         <h3>Para Restaurantes</h3>
         <p>Faça a gestão do seu restaurante, atualize menus, receba encomendas e acompanhe entregas.</p>
