@@ -41,7 +41,7 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production (requires HTTPS)
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
-limiter = Limiter(get_remote_address, app=app, default_limits=["200 per day", "200 per hour"])
+limiter = Limiter(get_remote_address, app=app)
 
 # Database initialization
 def init_db():
@@ -245,7 +245,6 @@ def index():
     return render_template('index.html')
 
 @app.route('/register', methods=['GET', 'POST'])
-@limiter.limit("5 per minute")
 def register():
     if request.method == 'POST':
         username = request.form['username']
@@ -313,7 +312,6 @@ def register():
     return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
-@limiter.limit("10 per minute")
 def login():
     if request.method == 'POST':
         recaptcha_response = request.form.get('g-recaptcha-response')
