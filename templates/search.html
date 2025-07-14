@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Pesquisar Restaurantes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Pesquisar Restaurantes</h2>
+
+    <!-- Formulário de Pesquisa -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('search') }}">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="cuisine_type">Tipo de Cozinha</label>
+                            <select class="form-control" id="cuisine_type" name="cuisine_type">
+                                <option value="">Todos os tipos</option>
+                                <option value="Cozinha Portuguesa" {% if
+                                    request.args.get('cuisine_type')=='Cozinha Portuguesa' %}selected{% endif %}>Cozinha
+                                    Portuguesa</option>
+                                <option value="Asiático" {% if request.args.get('cuisine_type')=='Asiático' %}selected{%
+                                    endif %}>Asiático</option>
+                                <option value="Fusão" {% if request.args.get('cuisine_type')=='Fusão' %}selected{% endif
+                                    %}>Fusão</option>
+                                <option value="Fast-Food" {% if request.args.get('cuisine_type')=='Fast-Food'
+                                    %}selected{% endif %}>Fast-Food</option>
+                                <option value="Vegan" {% if request.args.get('cuisine_type')=='Vegan' %}selected{% endif
+                                    %}>Vegan</option>
+                                <option value="Sobremesas" {% if request.args.get('cuisine_type')=='Sobremesas'
+                                    %}selected{% endif %}>Sobremesas</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search"></i> Pesquisar
+                                </button>
+                                <a href="{{ url_for('search') }}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times"></i> Limpar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Resultados da Pesquisa -->
+    {% if restaurants %}
+    <div class="card menu-card">
+        <h3>Resultados da Pesquisa</h3>
+        <div class="grid">
+            {% for restaurant in restaurants %}
+            <div class="menu-item">
+                {% if restaurant.image_path %}
+                <img src="{{ url_for('static', filename=restaurant.image_path) }}" alt="Restaurant Image"
+                    style="max-width: 120px; max-height: 120px; display: block; margin-bottom: 10px;">
+                {% endif %}
+                <h4>{{ restaurant.restaurant_name }}</h4>
+                {% if restaurant.restaurant_description %}
+                <p>{{ restaurant.restaurant_description }}</p>
+                {% endif %}
+                {% if restaurant.cuisine_type %}
+                <p><strong>Tipo de Cozinha:</strong> {{ restaurant.cuisine_type }}</p>
+                {% endif %}
+
+                <!-- Avaliação -->
+                {% if restaurant.avg_rating and restaurant.review_count %}
+                <div class="mb-2">
+                    <span class="text-warning">
+                        {% for i in range(restaurant.avg_rating|int) %}
+                        <i class="fas fa-star"></i>
+                        {% endfor %}
+                        {% if restaurant.avg_rating % 1 >= 0.5 %}
+                        <i class="fas fa-star-half-alt"></i>
+                        {% endif %}
+                    </span>
+                    <span class="text-muted">({{ "%.1f"|format(restaurant.avg_rating) }}, {{ restaurant.review_count }}
+                        avaliações)</span>
+                </div>
+                {% else %}
+                <div class="mb-2">
+                    <span class="text-muted">Sem avaliações</span>
+                </div>
+                {% endif %}
+
+                <div class="mt-20">
+                    <a href="{{ url_for('view_restaurant', restaurant_id=restaurant.id) }}" class="btn btn-primary">Ver
+                        Menu</a>
+                    {% if restaurant.id in user_favorites %}
+                    <a href="{{ url_for('remove_restaurant_from_favorites', restaurant_id=restaurant.id) }}"
+                        class="btn btn-outline-danger btn-sm" title="Remover dos favoritos">
+                        <i class="fas fa-heart"></i>
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('add_restaurant_to_favorites', restaurant_id=restaurant.id) }}"
+                        class="btn btn-outline-secondary btn-sm" title="Adicionar aos favoritos">
+                        <i class="far fa-heart"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center">
+        <i class="fas fa-search fa-5x text-muted mb-3"></i>
+        <h4 class="text-muted">Nenhum restaurante encontrado</h4>
+        <p class="text-muted">Tente ajustar os critérios de pesquisa.</p>
+        <a href="{{ url_for('customer_dashboard') }}" class="btn btn-primary">Ver Todos os Restaurantes</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

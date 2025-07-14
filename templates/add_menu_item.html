@@ -1,38 +1,74 @@
 {% extends "base.html" %}
 
-{% block title %}Adicionar Item do Menu - Entregas na Vila{% endblock %}
+{% block title %}Adicionar Item ao Menu{% endblock %}
 
 {% block content %}
-<div class="card">
-    <h2>Adicionar Novo Item do Menu</h2>
-    <form method="POST" enctype="multipart/form-data">
-        <div class="form-group">
-            <label for="name">Nome do Item:</label>
-            <input type="text" id="name" name="name" required>
-        </div>
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">Adicionar Novo Item ao Menu</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="name">Nome do Item</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
 
-        <div class="form-group">
-            <label for="description">Descrição:</label>
-            <textarea id="description" name="description"></textarea>
-        </div>
+                        <div class="form-group">
+                            <label for="description">Descrição</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"
+                                required></textarea>
+                        </div>
 
-        <div class="form-group">
-            <label for="price">Preço:</label>
-            <input type="number" id="price" name="price" step="0.01" min="0" required>
-        </div>
+                        <div class="form-group">
+                            <label for="price">Preço (€)</label>
+                            <input type="number" class="form-control" id="price" name="price" step="0.01" min="0"
+                                required>
+                        </div>
 
-        <div class="form-group">
-            <label for="category">Categoria:</label>
-            <input type="text" id="category" name="category" placeholder="ex: Entradas, Prato Principal, Sobremesas">
-        </div>
+                        <div class="form-group">
+                            <label for="category">Categoria</label>
+                            <select class="form-control" id="category" name="category" required>
+                                <option value="">Selecione uma categoria</option>
+                                <option value="Entradas">Entradas</option>
+                                <option value="Pratos Principais">Pratos Principais</option>
+                                <option value="Sobremesas">Sobremesas</option>
+                                <option value="Bebidas">Bebidas</option>
+                                <option value="Acompanhamentos">Acompanhamentos</option>
+                            </select>
+                        </div>
 
-        <div class="form-group">
-            <label for="image">Imagem do Item:</label>
-            <input type="file" id="image" name="image" accept="image/*">
-        </div>
+                        <div class="form-group">
+                            <label for="image">Imagem do Item (Opcional)</label>
+                            <input type="file" class="form-control-file" id="image" name="image" accept="image/*">
+                            <small class="form-text text-muted">Formatos aceites: JPG, PNG, GIF. Tamanho máximo:
+                                5MB.</small>
+                        </div>
 
-        <button type="submit" class="btn btn-success">Adicionar Item</button>
-        <a href="{{ url_for('restaurant_dashboard') }}" class="btn">Cancelar</a>
-    </form>
+                        <div class="form-group">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="available" name="available" checked>
+                                <label class="form-check-label" for="available">
+                                    Item disponível para encomenda
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Adicionar Item
+                            </button>
+                            <a href="{{ url_for('restaurant_dashboard') }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

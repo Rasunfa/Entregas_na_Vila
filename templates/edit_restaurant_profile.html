@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Perfil do Restaurante{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">Editar Perfil do Restaurante</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('update_restaurant_profile') }}">
+                        <h5 class="mb-3">Informações Pessoais</h5>
+
+                        <div class="form-group">
+                            <label for="username">Nome de Utilizador:</label>
+                            <input type="text" id="username" name="username" value="{{ g.user.username }}"
+                                class="form-control" readonly>
+                            <small class="form-text text-muted">O nome de utilizador não pode ser alterado.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email:</label>
+                            <input type="email" id="email" name="email" value="{{ g.user.email }}" class="form-control"
+                                required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone">Telefone:</label>
+                            <input type="text" id="phone" name="phone" value="{{ g.user.phone or '' }}"
+                                class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="address">Morada:</label>
+                            <textarea id="address" name="address" class="form-control"
+                                rows="2">{{ g.user.address or '' }}</textarea>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h5 class="mb-3">Alterar Palavra-passe</h5>
+
+                        <div class="form-group">
+                            <label for="current_password">Palavra-passe Atual:</label>
+                            <input type="password" id="current_password" name="current_password" class="form-control">
+                            <small class="form-text text-muted">Preencha apenas se quiser alterar a
+                                palavra-passe.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="new_password">Nova Palavra-passe:</label>
+                            <input type="password" id="new_password" name="new_password" class="form-control">
+                            <small class="form-text text-muted">Deve ter pelo menos 8 caracteres e conter letras e
+                                números.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="confirm_password">Confirmar Nova Palavra-passe:</label>
+                            <input type="password" id="confirm_password" name="confirm_password" class="form-control">
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h5 class="mb-3">Informações do Restaurante</h5>
+
+                        <div class="form-group">
+                            <label for="restaurant_name">Nome do Restaurante:</label>
+                            <input type="text" id="restaurant_name" name="restaurant_name"
+                                value="{{ g.user.restaurant_name or '' }}" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="restaurant_description">Descrição do Restaurante:</label>
+                            <textarea id="restaurant_description" name="restaurant_description" class="form-control"
+                                rows="3">{{ g.user.restaurant_description or '' }}</textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cuisine_type">Tipo de Cozinha:</label>
+                            <select id="cuisine_type" name="cuisine_type" class="form-control" required>
+                                <option value="">Selecione um tipo de cozinha</option>
+                                <option value="Cozinha Portuguesa" {% if g.user.cuisine_type=='Cozinha Portuguesa'
+                                    %}selected{% endif %}>Cozinha Portuguesa</option>
+                                <option value="Asiático" {% if g.user.cuisine_type=='Asiático' %}selected{% endif %}>
+                                    Asiático</option>
+                                <option value="Fusão" {% if g.user.cuisine_type=='Fusão' %}selected{% endif %}>Fusão
+                                </option>
+                                <option value="Fast-Food" {% if g.user.cuisine_type=='Fast-Food' %}selected{% endif %}>
+                                    Fast-Food</option>
+                                <option value="Vegan" {% if g.user.cuisine_type=='Vegan' %}selected{% endif %}>Vegan
+                                </option>
+                                <option value="Sobremesas" {% if g.user.cuisine_type=='Sobremesas' %}selected{% endif
+                                    %}>Sobremesas</option>
+                            </select>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h5 class="mb-3">Imagem do Restaurante</h5>
+
+                        {% if g.user and g.user.image_path %}
+                        <div class="mb-3">
+                            <img src="{{ url_for('static', filename=g.user.image_path) }}" alt="Restaurant Image"
+                                style="max-width: 200px; max-height: 200px;" class="img-fluid rounded">
+                        </div>
+                        {% endif %}
+
+                        <div class="form-group">
+                            <label for="restaurant_image">Nova Imagem do Restaurante:</label>
+                            <input type="file" id="restaurant_image" name="image" accept="image/*" class="form-control">
+                            <small class="form-text text-muted">Deixe em branco para manter a imagem atual.</small>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar Alterações
+                            </button>
+                            <a href="{{ url_for('restaurant_dashboard') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Voltar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

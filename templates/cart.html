@@ -1,88 +1,270 @@
 {% extends "base.html" %}
 
-{% block title %}Carrinho de Compras - Entregas na Vila{% endblock %}
+{% block title %}Carrinho de Compras{% endblock %}
 
 {% block content %}
-<div class="card">
-    <h2>Carrinho de Compras</h2>
+<div class="container mt-4">
+    <h2 class="mb-4">Carrinho de Compras</h2>
 
-    {% if cart %}
-    <table>
-        <thead>
-            <tr>
-                <th>Item</th>
-                <th>Preço</th>
-                <th>Quantidade</th>
-                <th>Subtotal</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in cart %}
-            <tr>
-                <td>{{ item.name }}</td>
-                <td>€{{ "%.2f"|format(item.price) }}</td>
-                <td>{{ item.quantity }}</td>
-                <td>€{{ "%.2f"|format(item.price * item.quantity) }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-        <tfoot>
-            <tr>
-                <th colspan="3">Total:</th>
-                <th>€{{ "%.2f"|format(total) }}</th>
-            </tr>
-        </tfoot>
-    </table>
+    {% if cart_items %}
+    <div class="row">
+        <div class="col-lg-9">
+            <!-- Itens do Carrinho -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0 cart-items-title">
+                        <i class="fas fa-shopping-basket"></i> Itens no Carrinho
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for item in cart_items %}
+                    <div class="row mb-4 align-items-center border-bottom pb-4 cart-item">
+                        <div class="col-lg-2 col-md-3">
+                            {% if item.image_path %}
+                            <img src="{{ url_for('static', filename=item.image_path) }}" alt="{{ item.name }}"
+                                class="cart-item-image"
+                                onerror="this.src='{{ url_for('static', filename='uploads/default-food.jpg') }}'">
+                            {% else %}
+                            <div class="cart-item-placeholder">
+                                <i class="fas fa-utensils"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-lg-4 col-md-4">
+                            <h5 class="mb-2 cart-item-name">{{ item.name }}</h5>
+                            <div class="cart-item-price">€{{ "%.2f"|format(item.price) }} cada</div>
+                        </div>
+                        <div class="col-lg-3 col-md-3">
+                            <div class="quantity-controls">
+                                <button class="btn btn-outline-secondary quantity-btn" type="button"
+                                    onclick="changeQuantity({{ item.menu_item_id }}, -1)">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input type="number" class="form-control quantity-input" value="{{ item.quantity }}"
+                                    min="1" max="99" data-item-id="{{ item.menu_item_id }}">
+                                <button class="btn btn-outline-secondary quantity-btn" type="button"
+                                    onclick="changeQuantity({{ item.menu_item_id }}, 1)">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-1 text-right">
+                            <div class="cart-item-total">€{{ "%.2f"|format(item.price * item.quantity) }}</div>
+                        </div>
+                        <div class="col-lg-1 col-md-1 text-right">
+                            <a href="{{ url_for('remove_from_cart', item_id=item.menu_item_id) }}"
+                                class="btn btn-outline-danger btn-sm remove-btn"
+                                onclick="return confirm('Remover este item do carrinho?')">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
 
-    <div class="mt-20">
-        <form method="POST" action="{{ url_for('place_order') }}">
-            <div class="form-group">
-                <label for="delivery_address">Morada de Entrega:</label>
-                {% if user_address %}
-                <div class="address-choice">
-                    <button type="button" class="btn btn-secondary" onclick="useSavedAddress()">Usar Morada
-                        Guardada</button>
-                    <button type="button" class="btn btn-secondary" onclick="useCustomAddress()">Usar Morada
-                        Diferente</button>
+        <div class="col-lg-3">
+            <!-- Resumo da Encomenda -->
+            <div class="card cart-summary-card">
+                <div class="card-header">
+                    <h5 class="mb-0 cart-summary-title">
+                        <i class="fas fa-receipt"></i> Resumo da Encomenda
+                    </h5>
                 </div>
-                <div id="saved-address-display" style="display: none;">
-                    <p><strong>A sua morada guardada:</strong></p>
-                    <p>{{ user_address }}</p>
-                    <input type="hidden" id="saved_address" value="{{ user_address }}">
+                <div class="card-body">
+                    <div class="cart-summary-item">
+                        <span class="summary-label">Subtotal:</span>
+                        <span class="summary-value">€{{ "%.2f"|format(subtotal) }}</span>
+                    </div>
+                    <div class="cart-summary-item">
+                        <span class="summary-label">Taxa de Entrega:</span>
+                        <span class="summary-value">€{{ "%.2f"|format(delivery_fee) }}</span>
+                    </div>
+                    <hr class="summary-divider">
+                    <div class="cart-summary-item total-item">
+                        <span class="summary-label">Total:</span>
+                        <span class="summary-value total-value">€{{ "%.2f"|format(total) }}</span>
+                    </div>
+
+                    <div class="cart-summary-actions">
+                        <a href="{{ url_for('customer_dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> &nbsp;Continuar a Comprar
+                        </a>
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#checkoutModal">
+                            <i class="fas fa-check"></i> &nbsp;Finalizar Encomenda
+                        </button>
+                    </div>
                 </div>
-                {% endif %}
-                <textarea id="delivery_address" name="delivery_address" required
-                    placeholder="Introduza a sua morada de entrega"></textarea>
             </div>
-            <div class="form-group">
-                <label for="observations">Instruções Especiais (Opcional):</label>
-                <textarea id="observations" name="observations"
-                    placeholder="Qualquer instrução especial para a sua encomenda (ex: sem cebolas, extra picante, instruções de entrega, etc.)"></textarea>
-            </div>
-            <button type="submit" class="btn btn-success">Fazer Encomenda</button>
-            <a href="{{ url_for('customer_dashboard') }}" class="btn">Continuar a Comprar</a>
-        </form>
+        </div>
     </div>
-
-    {% if user_address %}
-    <script>
-        function useSavedAddress() {
-            document.getElementById('delivery_address').value = document.getElementById('saved_address').value;
-            document.getElementById('saved-address-display').style.display = 'block';
-            document.getElementById('delivery_address').readOnly = true;
-        }
-
-        function useCustomAddress() {
-            document.getElementById('delivery_address').value = '';
-            document.getElementById('saved-address-display').style.display = 'none';
-            document.getElementById('delivery_address').readOnly = false;
-            document.getElementById('delivery_address').focus();
-        }
-    </script>
-    {% endif %}
     {% else %}
-    <p>O seu carrinho está vazio.</p>
-    <a href="{{ url_for('customer_dashboard') }}" class="btn btn-success">Começar a Comprar</a>
+    <div class="text-center">
+        <i class="fas fa-shopping-cart fa-5x text-muted mb-3"></i>
+        <h4 class="text-muted">O seu carrinho está vazio</h4>
+        <p class="text-muted">Adicione alguns itens deliciosos ao seu carrinho!</p>
+        <a href="{{ url_for('customer_dashboard') }}" class="btn btn-primary">Explorar Restaurantes</a>
+    </div>
     {% endif %}
 </div>
+
+<!-- Modal de Finalização da Encomenda -->
+{% if cart_items %}
+<div class="modal fade" id="checkoutModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('place_order') }}">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Informações de Entrega</h6>
+                            <div class="form-group">
+                                <label>Escolher Morada de Entrega:</label>
+                                <table style="width: 100%; border: none;">
+                                    <tr>
+                                        <td style="width: 20px; padding: 5px 0;">
+                                            <input type="radio" name="address_choice" id="use_default" value="default"
+                                                checked>
+                                        </td>
+                                        <td style="padding: 5px 0; padding-left: 10px;">
+                                            <label for="use_default">Usar morada padrão: {{ user_address }}</label>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width: 20px; padding: 5px 0;">
+                                            <input type="radio" name="address_choice" id="use_custom" value="custom">
+                                        </td>
+                                        <td style="padding: 5px 0; padding-left: 10px;">
+                                            <label for="use_custom">Usar morada diferente</label>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="form-group" id="custom_address_group" style="display: none;">
+                                <label for="delivery_address">Nova Morada de Entrega</label>
+                                <textarea class="form-control" id="delivery_address" name="delivery_address" rows="3"
+                                    placeholder="Introduza a nova morada completa"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="observations">Observações (Opcional)</label>
+                                <textarea class="form-control" id="observations" name="observations" rows="2"
+                                    placeholder="Instruções especiais para a entrega..."></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Resumo da Encomenda</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <tbody>
+                                        {% for item in cart_items %}
+                                        <tr>
+                                            <td>{{ item.name }} x{{ item.quantity }}</td>
+                                            <td class="text-right">€{{ "%.2f"|format(item.price * item.quantity) }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                        <tr>
+                                            <td><strong>Subtotal</strong></td>
+                                            <td class="text-right"><strong>€{{ "%.2f"|format(subtotal) }}</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Taxa de Entrega</td>
+                                            <td class="text-right">€{{ "%.2f"|format(delivery_fee) }}</td>
+                                        </tr>
+                                        <tr class="table-active">
+                                            <td><strong>Total</strong></td>
+                                            <td class="text-right"><strong>€{{ "%.2f"|format(total) }}</strong></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check"></i> Confirmar Encomenda
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+    // Function to change quantity with +/- buttons
+    function changeQuantity(itemId, change) {
+        const input = document.querySelector(`input[data-item-id="${itemId}"]`);
+        const currentQuantity = parseInt(input.value);
+        const newQuantity = currentQuantity + change;
+
+        if (newQuantity >= 1 && newQuantity <= 99) {
+            window.location.href = `/update_cart_quantity/${itemId}/${newQuantity}`;
+        }
+    }
+
+    // Function to update quantity when input changes
+    function updateQuantity(itemId, newQuantity) {
+        if (newQuantity >= 1 && newQuantity <= 99) {
+            window.location.href = `/update_cart_quantity/${itemId}/${newQuantity}`;
+        }
+    }
+
+    // Add event listeners to quantity inputs
+    document.addEventListener('DOMContentLoaded', function () {
+        const quantityInputs = document.querySelectorAll('.quantity-input');
+
+        quantityInputs.forEach(input => {
+            input.addEventListener('change', function () {
+                const itemId = this.getAttribute('data-item-id');
+                const newQuantity = parseInt(this.value);
+                updateQuantity(itemId, newQuantity);
+            });
+        });
+
+        // Handle address choice radio buttons
+        const addressChoiceRadios = document.querySelectorAll('input[name="address_choice"]');
+        const customAddressGroup = document.getElementById('custom_address_group');
+        const deliveryAddressField = document.getElementById('delivery_address');
+        const userAddress = '{{ user_address }}';
+
+        addressChoiceRadios.forEach(radio => {
+            radio.addEventListener('change', function () {
+                if (this.value === 'custom') {
+                    customAddressGroup.style.display = 'block';
+                    deliveryAddressField.required = true;
+                    deliveryAddressField.value = '';
+                } else {
+                    customAddressGroup.style.display = 'none';
+                    deliveryAddressField.required = false;
+                    deliveryAddressField.value = userAddress;
+                }
+            });
+        });
+
+        // Set initial value for default address and add hidden field
+        const defaultRadio = document.getElementById('use_default');
+        if (defaultRadio && defaultRadio.checked) {
+            deliveryAddressField.value = userAddress;
+        }
+
+        // Add hidden field for default address when form is submitted
+        const form = document.querySelector('form[action*="place_order"]');
+        if (form) {
+            form.addEventListener('submit', function (e) {
+                const defaultRadio = document.getElementById('use_default');
+                if (defaultRadio && defaultRadio.checked) {
+                    // Create hidden field with user's default address
+                    const hiddenField = document.createElement('input');
+                    hiddenField.type = 'hidden';
+                    hiddenField.name = 'delivery_address';
+                    hiddenField.value = userAddress;
+                    form.appendChild(hiddenField);
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}

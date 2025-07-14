@@ -4,11 +4,17 @@
 
 {% block content %}
 <div class="card">
-    <h2>Bem-vindo, {{ session.username }}!</h2>
-    <p>Escolha entre os nossos restaurantes disponíveis e comece a encomendar!</p>
+    <h2>Painel do Cliente</h2>
+    <p>Bem-vindo, {{ session.username }}!</p>
+    
+    <div class="mt-4">
+        <a href="{{ url_for('edit_customer_profile') }}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Editar Perfil
+        </a>
+    </div>
 </div>
 
-<div class="card restaurants-card">
+<div class="card menu-card">
     <h3>Restaurantes Disponíveis</h3>
     {% if restaurants %}
     <div class="grid">
@@ -18,21 +24,46 @@
             <img src="{{ url_for('static', filename=restaurant.image_path) }}" alt="Restaurant Image"
                 style="max-width: 120px; max-height: 120px; display: block; margin-bottom: 10px;">
             {% endif %}
-            <h3>{{ restaurant.restaurant_name or restaurant.username }}</h3>
+            <h4>{{ restaurant.restaurant_name }}</h4>
             {% if restaurant.restaurant_description %}
             <p>{{ restaurant.restaurant_description }}</p>
             {% endif %}
+            {% if restaurant.cuisine_type %}
+            <p><strong>Tipo de Cozinha:</strong> {{ restaurant.cuisine_type }}</p>
+            {% endif %}
+
+            <!-- Avaliação do Restaurante -->
+            {% if restaurant.avg_rating %}
+            <div class="mb-2">
+                <span class="text-warning">
+                    {% for i in range(restaurant.avg_rating|int) %}
+                    <i class="fas fa-star"></i>
+                    {% endfor %}
+                    {% if restaurant.avg_rating % 1 >= 0.5 %}
+                    <i class="fas fa-star-half-alt"></i>
+                    {% endif %}
+                </span>
+                <span class="text-muted">({{ "%.1f"|format(restaurant.avg_rating) }}, {{ restaurant.review_count }}
+                    avaliações)</span>
+            </div>
+            {% else %}
+            <div class="mb-2">
+                <span class="text-muted">Sem avaliações</span>
+            </div>
+            {% endif %}
+
             <div class="mt-20">
-                <a href="{{ url_for('view_restaurant', restaurant_id=restaurant.id) }}" class="btn btn-success">Ver
+                <a href="{{ url_for('view_restaurant', restaurant_id=restaurant.id) }}" class="btn btn-primary">Ver
                     Menu</a>
             </div>
         </div>
         {% endfor %}
     </div>
     {% else %}
-    <p>Nenhum restaurante disponível neste momento.</p>
+    <p>Nenhum restaurante disponível no momento.</p>
     {% endif %}
 </div>
+
 <div class="mt-20" style="text-align: right;">
     <form method="POST" action="{{ url_for('delete_account') }}"
         onsubmit="return confirm('Tem a certeza que quer eliminar a sua conta? Esta ação não pode ser desfeita.');">

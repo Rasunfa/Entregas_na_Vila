@@ -1,13 +1,15 @@
 {% extends "base.html" %}
 
+{% block title %}Entregas na Vila - Página Inicial{% endblock %}
+
 {% block content %}
 <div class="welcome-card">
     <h1>Bem-vindo a Entregas na Vila</h1>
-    <p>Encomende comida dos seus restaurantes favoritos ou gira as encomendas do seu restaurante.</p>
+    <p>Encomende comida dos seus restaurantes favoritos ou gere as encomendas do seu restaurante.</p>
     {% if not session.user_id %}
     <div class="mt-20">
-        <a href="{{ url_for('register') }}" class="btn btn-success">Registar Agora</a>
-        <a href="{{ url_for('login') }}" class="btn btn-danger">Entrar</a>
+        <a href="{{ url_for('register') }}" class="btn btn-success">Criar Conta Agora</a>
+        <a href="{{ url_for('login') }}" class="btn btn-danger">Iniciar Sessão</a>
     </div>
     {% else %}
     <div class="mt-20">

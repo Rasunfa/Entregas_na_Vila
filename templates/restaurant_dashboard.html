@@ -6,24 +6,18 @@
 <div class="card">
     <h2>Painel do Restaurante</h2>
     <p>Bem-vindo, {{ session.username }}!</p>
-    {% if session.user_type == 'restaurant' and session.user_id %}
-    <form method="POST" action="{{ url_for('upload_restaurant_image') }}" enctype="multipart/form-data"
-        style="margin-bottom: 20px;">
-        <label for="restaurant_image">Imagem do Restaurante:</label>
-        <input type="file" id="restaurant_image" name="image" accept="image/*">
-        <button type="submit" class="btn btn-secondary">Carregar/Alterar Imagem</button>
-        {% if g.user and g.user.image_path %}
-        <div class="mt-20">
-            <img src="{{ url_for('static', filename=g.user.image_path) }}" alt="Restaurant Image"
-                style="max-width: 200px; max-height: 200px;">
-        </div>
-        {% endif %}
-    </form>
-    {% endif %}
-    <a href="{{ url_for('add_menu_item') }}" class="btn btn-success">Adicionar Novo Item do Menu</a>
+
+    <div class="mt-4">
+        <a href="{{ url_for('edit_restaurant_profile') }}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Editar Perfil do Restaurante
+        </a>
+        <a href="{{ url_for('add_menu_item') }}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Adicionar Novo Item do Menu
+        </a>
+    </div>
 </div>
 
-<div class="card">
+<div class="card menu-card">
     <h3>Itens do Menu</h3>
     {% if menu_items %}
     <div class="grid">
@@ -56,53 +50,10 @@
     {% endif %}
 </div>
 
-<div class="card">
-    <h3>Encomendas</h3>
-    {% if orders %}
-    {% for order in orders %}
-    <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <h4>Encomenda #{{ order.id }}</h4>
-                <p><strong>Cliente:</strong> {{ order.customer_username }}</p>
-                <p><strong>Data:</strong> {{ order.order_date }}</p>
-                <p><strong>Total:</strong> €{{ "%.2f"|format(order.total_amount) }}</p>
-            </div>
-            <div>
-                <span class="status status-{{ order.status }}">{{ order.status.replace('_', ' ') }}</span>
-            </div>
-        </div>
-        <div class="mt-20">
-            <p><strong>Morada de Entrega:</strong> {{ order.delivery_address }}</p>
-            {% if order.observations %}
-            <p><strong>Instruções Especiais:</strong> {{ order.observations }}</p>
-            {% endif %}
-            <a href="{{ url_for('order_details', order_id=order.id) }}" class="btn">Ver Detalhes</a>
-
-            {% if order.status == 'pending' %}
-            <a href="{{ url_for('update_order_status', order_id=order.id, status='confirmed') }}"
-                class="btn btn-success">Confirmar Encomenda</a>
-            {% elif order.status == 'confirmed' %}
-            <a href="{{ url_for('update_order_status', order_id=order.id, status='preparing') }}"
-                class="btn btn-warning">Começar a Preparar</a>
-            {% elif order.status == 'preparing' %}
-            <a href="{{ url_for('update_order_status', order_id=order.id, status='out_for_delivery') }}"
-                class="btn btn-warning">Em Entrega</a>
-            {% elif order.status == 'out_for_delivery' %}
-            <a href="{{ url_for('update_order_status', order_id=order.id, status='delivered') }}"
-                class="btn btn-success">Marcar como Entregue</a>
-            {% endif %}
-
-            {% if order.status in ['pending', 'confirmed'] %}
-            <a href="{{ url_for('update_order_status', order_id=order.id, status='cancelled') }}" class="btn btn-danger"
-                onclick="return confirm('Tem a certeza que quer cancelar esta encomenda?')">Cancelar</a>
-            {% endif %}
-        </div>
-    </div>
-    {% endfor %}
-    {% else %}
-    <p>Ainda não há encomendas.</p>
-    {% endif %}
+<div class="mt-4">
+    <a href="{{ url_for('restaurant_orders') }}" class="btn btn-info">
+        <i class="fas fa-shopping-cart"></i> Ver Encomendas
+    </a>
 </div>
 
 <div class="mt-20" style="text-align: right;">

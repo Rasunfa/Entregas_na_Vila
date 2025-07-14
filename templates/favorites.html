@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Os Meus Favoritos{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Os Meus Favoritos</h2>
+
+    <!-- Restaurantes Favoritos -->
+    {% if favorite_restaurants %}
+    <div class="card menu-card mb-4">
+        <h3>Restaurantes Favoritos</h3>
+        <div class="grid">
+            {% for restaurant in favorite_restaurants %}
+            <div class="menu-item">
+                {% if restaurant.image_path %}
+                <img src="{{ url_for('static', filename=restaurant.image_path) }}" alt="Restaurant Image"
+                    style="max-width: 120px; max-height: 120px; display: block; margin-bottom: 10px;">
+                {% endif %}
+                <h4>{{ restaurant.restaurant_name }}</h4>
+                {% if restaurant.restaurant_description %}
+                <p>{{ restaurant.restaurant_description }}</p>
+                {% endif %}
+
+                <!-- Avaliação -->
+                {% if restaurant.avg_rating %}
+                <div class="mb-2">
+                    <span class="text-warning">
+                        {% for i in range(restaurant.avg_rating|int) %}
+                        <i class="fas fa-star"></i>
+                        {% endfor %}
+                        {% if restaurant.avg_rating % 1 >= 0.5 %}
+                        <i class="fas fa-star-half-alt"></i>
+                        {% endif %}
+                    </span>
+                    <span class="text-muted">({{ "%.1f"|format(restaurant.avg_rating) }}, {{ restaurant.review_count }}
+                        avaliações)</span>
+                </div>
+                {% else %}
+                <div class="mb-2">
+                    <span class="text-muted">Sem avaliações</span>
+                </div>
+                {% endif %}
+
+                <div class="mt-20">
+                    <a href="{{ url_for('view_restaurant', restaurant_id=restaurant.id) }}" class="btn btn-primary">Ver
+                        Menu</a>
+                    <a href="{{ url_for('remove_restaurant_from_favorites', restaurant_id=restaurant.id) }}"
+                        class="btn btn-outline-danger" onclick="return confirm('Remover dos favoritos?')">
+                        <i class="fas fa-heart-broken"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Itens do Menu Favoritos -->
+    {% if favorite_menu_items %}
+    <div class="card menu-card">
+        <h3>Itens do Menu Favoritos</h3>
+        <div class="grid">
+            {% for item in favorite_menu_items %}
+            <div class="menu-item">
+                {% if item.image_path %}
+                <img src="{{ url_for('static', filename=item.image_path) }}" alt="Menu Item Image"
+                    style="max-width: 120px; max-height: 120px; display: block; margin-bottom: 10px;">
+                {% endif %}
+                <h4>{{ item.name }}</h4>
+                {% if item.description %}
+                <p>{{ item.description }}</p>
+                {% endif %}
+
+                <div class="mb-2">
+                    <span class="badge badge-primary">{{ item.category }}</span>
+                    <span class="badge badge-success">€{{ "%.2f"|format(item.price) }}</span>
+                </div>
+
+                <p class="text-muted small">De: {{ item.restaurant_name }}</p>
+
+                <!-- Avaliação -->
+                {% if item.avg_rating %}
+                <div class="mb-2">
+                    <span class="text-warning">
+                        {% for i in range(item.avg_rating|int) %}
+                        <i class="fas fa-star"></i>
+                        {% endfor %}
+                        {% if item.avg_rating % 1 >= 0.5 %}
+                        <i class="fas fa-star-half-alt"></i>
+                        {% endif %}
+                    </span>
+                    <span class="text-muted">({{ "%.1f"|format(item.avg_rating) }}, {{ item.review_count }}
+                        avaliações)</span>
+                </div>
+                {% else %}
+                <div class="mb-2">
+                    <span class="text-muted">Sem avaliações</span>
+                </div>
+                {% endif %}
+
+                <div class="mt-20">
+                    <a href="{{ url_for('view_restaurant', restaurant_id=item.restaurant_id) }}"
+                        class="btn btn-primary">Ver Restaurante</a>
+                    <a href="{{ url_for('remove_menu_item_from_favorites', menu_item_id=item.id) }}"
+                        class="btn btn-outline-danger" onclick="return confirm('Remover dos favoritos?')">
+                        <i class="fas fa-heart-broken"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not favorite_restaurants and not favorite_menu_items %}
+    <div class="text-center">
+        <i class="fas fa-heart fa-5x text-muted mb-3"></i>
+        <h4 class="text-muted">Ainda não tem favoritos</h4>
+        <p class="text-muted">Comece a explorar restaurantes e adicione os seus favoritos!</p>
+        <a href="{{ url_for('customer_dashboard') }}" class="btn btn-primary">Explorar Restaurantes</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

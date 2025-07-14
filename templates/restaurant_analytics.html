@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}Análise do Restaurante{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Análise do Restaurante</h2>
+
+    <!-- Cartões de Estatísticas -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-shopping-cart fa-3x text-primary mb-3"></i>
+                    <h3 class="card-title">{{ total_orders }}</h3>
+                    <p class="card-text">Total de Encomendas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-euro-sign fa-3x text-success mb-3"></i>
+                    <h3 class="card-title">€{{ "%.2f"|format(total_revenue) }}</h3>
+                    <p class="card-text">Receita Total</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-chart-line fa-3x text-info mb-3"></i>
+                    <h3 class="card-title">€{{ "%.2f"|format(avg_order_value) }}</h3>
+                    <p class="card-text">Valor Médio por Encomenda</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-star fa-3x text-warning mb-3"></i>
+                    <h3 class="card-title">{{ "%.1f"|format(avg_rating) }}</h3>
+                    <p class="card-text">Avaliação Média ({{ total_reviews }} avaliações)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Encomendas por Estado -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Encomendas por Estado</h5>
+                </div>
+                <div class="card-body">
+                    {% if orders_by_status %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Estado</th>
+                                    <th>Quantidade</th>
+                                    <th>Percentagem</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for status in orders_by_status %}
+                                <tr>
+                                    <td>
+                                        <span
+                                            class="badge badge-{% if status.status == 'delivered' %}success{% elif status.status == 'cancelled' %}danger{% elif status.status == 'pending' %}warning{% else %}info{% endif %}">
+                                            {% if status.status == 'pending' %}Pendente
+                                            {% elif status.status == 'confirmed' %}Confirmado
+                                            {% elif status.status == 'preparing' %}A Preparar
+                                            {% elif status.status == 'out_for_delivery' %}Em Entrega
+                                            {% elif status.status == 'delivered' %}Entregue
+                                            {% elif status.status == 'cancelled' %}Cancelado
+                                            {% else %}{{ status.status }}{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>{{ status.count }}</td>
+                                    <td>{{ "%.1f"|format(status.count / total_orders * 100) }}%</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">Ainda não há encomendas.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Itens do Menu Populares -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Itens do Menu Populares</h5>
+                </div>
+                <div class="card-body">
+                    {% if popular_items %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Encomendas</th>
+                                    <th>Receita</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in popular_items %}
+                                <tr>
+                                    <td>{{ item.name }}</td>
+                                    <td>{{ item.total_ordered }}</td>
+                                    <td>€{{ "%.2f"|format(item.total_revenue) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">Ainda não há itens populares.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Encomendas Recentes -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card recent-orders-card">
+                <div class="card-header">
+                    <h5 class="mb-0">Encomendas Recentes</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_orders %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID da Encomenda</th>
+                                    <th>Cliente</th>
+                                    <th>Valor</th>
+                                    <th>Estado</th>
+                                    <th>Data</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in recent_orders %}
+                                <tr>
+                                    <td>#{{ order.id }}</td>
+                                    <td>{{ order.customer_username }}</td>
+                                    <td>€{{ "%.2f"|format(order.total_amount) }}</td>
+                                    <td>
+                                        <span
+                                            class="badge badge-{% if order.status == 'delivered' %}success{% elif order.status == 'cancelled' %}danger{% elif order.status == 'pending' %}warning{% else %}info{% endif %}">
+                                            {% if order.status == 'pending' %}Pendente
+                                            {% elif order.status == 'confirmed' %}Confirmado
+                                            {% elif order.status == 'preparing' %}A Preparar
+                                            {% elif order.status == 'out_for_delivery' %}Em Entrega
+                                            {% elif order.status == 'delivered' %}Entregue
+                                            {% elif order.status == 'cancelled' %}Cancelado
+                                            {% else %}{{ order.status }}{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>{{ order.order_date[8:10] }}/{{ order.order_date[5:7] }}/{{ order.order_date[:4]
+                                        }} {{
+                                        order.order_date[11:16] }}</td>
+                                    <td>
+                                        <a href="{{ url_for('order_details', order_id=order.id) }}"
+                                            class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">Nenhuma encomenda recente.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border: 1px solid rgba(0, 0, 0, 0.125);
+    }
+
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    }
+
+    .table th {
+        border-top: none;
+        font-weight: 600;
+    }
+
+    /* Make the recent orders table more readable */
+    .table-responsive {
+        overflow-x: auto;
+        max-width: 100%;
+    }
+
+    .table-sm td,
+    .table-sm th {
+        padding: 6px 8px;
+        font-size: 0.875rem;
+    }
+
+    .table td,
+    .table th {
+        padding: 8px 12px;
+        min-width: 100px;
+    }
+
+    .table th:first-child {
+        min-width: 80px;
+    }
+
+    .table th:last-child {
+        min-width: 60px;
+    }
+
+    /* Ensure the recent orders card doesn't overflow */
+    .col-lg-10.col-xl-8 {
+        max-width: 100%;
+    }
+
+    /* Make the recent orders card wider */
+    .recent-orders-card {
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    /* Ensure table stays within card boundaries */
+    .card .table-responsive {
+        border: none;
+        margin: 0;
+        padding: 0;
+    }
+</style>
+{% endblock %}

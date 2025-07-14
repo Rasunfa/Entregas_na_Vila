@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}Encomendas do Restaurante{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Encomendas do Restaurante</h2>
+        <div class="d-flex align-items-center">
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" id="autoRefresh" checked>
+                <label class="form-check-label" for="autoRefresh">
+                    <i class="fas fa-sync-alt"></i> Auto-refresh
+                </label>
+            </div>
+            <span class="badge badge-info ml-2" id="lastUpdate"></span>
+        </div>
+    </div>
+
+    <div id="ordersContainer">
+        {% if orders %}
+        <div class="row">
+            {% for order in orders %}
+            <div class="col-lg-6 col-xl-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">Encomenda #{{ order.id }}</h6>
+                        <span
+                            class="badge badge-{% if order.status == 'delivered' %}success{% elif order.status == 'cancelled' %}danger{% elif order.status == 'pending' %}warning{% else %}info{% endif %}">
+                            {% if order.status == 'pending' %}Pendente
+                            {% elif order.status == 'confirmed' %}Confirmado
+                            {% elif order.status == 'preparing' %}A Preparar
+                            {% elif order.status == 'out_for_delivery' %}Em Entrega
+                            {% elif order.status == 'delivered' %}Entregue
+                            {% elif order.status == 'cancelled' %}Cancelado
+                            {% else %}{{ order.status }}{% endif %}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <p class="mb-1"><strong>Cliente:</strong> {{ order.customer_username }}</p>
+                            <p class="mb-1"><strong>Data:</strong> {{ order.order_date[8:10] }}/{{ order.order_date[5:7]
+                                }}/{{ order.order_date[:4] }} {{ order.order_date[11:16] }}</p>
+                            <p class="mb-1"><strong>Total:</strong> €{{ "%.2f"|format(order.total_amount) }}</p>
+                            <p class="mb-1"><strong>Morada:</strong> {{ order.delivery_address[:50] }}{% if
+                                order.delivery_address|length > 50 %}...{% endif %}</p>
+                            {% if order.observations %}
+                            <p class="mb-1"><strong>Observações:</strong> {{ order.observations[:50] }}{% if
+                                order.observations|length > 50 %}...{% endif %}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="text-center">
+                            <a href="{{ url_for('order_details', order_id=order.id) }}"
+                                class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-eye"></i> Ver Detalhes
+                            </a>
+
+                            {% if order.status not in ['delivered', 'cancelled'] %}
+                            <div class="mt-2">
+                                {% if order.status == 'pending' %}
+                                <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}"
+                                    style="display: inline;">
+                                    <input type="hidden" name="status" value="confirmed">
+                                    <button type="submit" class="btn btn-success btn-sm">
+                                        <i class="fas fa-check-circle"></i> Confirmar
+                                    </button>
+                                </form>
+                                {% elif order.status == 'confirmed' %}
+                                <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}"
+                                    style="display: inline;">
+                                    <input type="hidden" name="status" value="preparing">
+                                    <button type="submit" class="btn btn-warning btn-sm">
+                                        <i class="fas fa-utensils"></i> A Preparar
+                                    </button>
+                                </form>
+                                {% elif order.status == 'preparing' %}
+                                <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}"
+                                    style="display: inline;">
+                                    <input type="hidden" name="status" value="out_for_delivery">
+                                    <button type="submit" class="btn btn-info btn-sm">
+                                        <i class="fas fa-truck"></i> Em Entrega
+                                    </button>
+                                </form>
+                                {% elif order.status == 'out_for_delivery' %}
+                                <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}"
+                                    style="display: inline;">
+                                    <input type="hidden" name="status" value="delivered">
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-check-double"></i> Entregue
+                                    </button>
+                                </form>
+                                {% endif %}
+
+                                <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}"
+                                    style="display: inline;">
+                                    <input type="hidden" name="status" value="cancelled">
+                                    <button type="submit" class="btn btn-danger btn-sm"
+                                        onclick="return confirm('Tem a certeza que quer cancelar esta encomenda?');">
+                                        <i class="fas fa-times-circle"></i> Cancelar
+                                    </button>
+                                </form>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center">
+            <i class="fas fa-clipboard-list fa-5x text-muted mb-3"></i>
+            <h4 class="text-muted">Ainda não há encomendas</h4>
+            <p class="text-muted">Quando os clientes fizerem encomendas, elas aparecerão aqui.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    let refreshInterval;
+    let lastUpdateTime = new Date();
+
+    function updateLastUpdateTime() {
+        const now = new Date();
+        const timeDiff = Math.floor((now - lastUpdateTime) / 1000);
+        document.getElementById('lastUpdate').textContent = `Última atualização: há ${timeDiff}s`;
+    }
+
+    function refreshOrders() {
+        if (document.getElementById('autoRefresh').checked) {
+            fetch(window.location.href)
+                .then(response => {
+                    if (!response.ok) {
+                        if (response.status === 429) {
+                            // Rate limit exceeded - stop auto-refresh
+                            console.log('Rate limit exceeded, stopping auto-refresh');
+                            document.getElementById('autoRefresh').checked = false;
+                            stopAutoRefresh();
+                            alert('Muitas tentativas de atualização. Auto-refresh desativado temporariamente.');
+                            return;
+                        }
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    if (html) {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const newContainer = doc.getElementById('ordersContainer');
+                        const currentContainer = document.getElementById('ordersContainer');
+
+                        if (newContainer && currentContainer) {
+                            currentContainer.innerHTML = newContainer.innerHTML;
+                            lastUpdateTime = new Date();
+                            updateLastUpdateTime();
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.log('Erro ao atualizar encomendas:', error);
+                });
+        }
+    }
+
+    function startAutoRefresh() {
+        if (refreshInterval) {
+            clearInterval(refreshInterval);
+        }
+        if (document.getElementById('autoRefresh').checked) {
+            refreshInterval = setInterval(refreshOrders, 30000); // Refresh every 30 seconds
+        }
+    }
+
+    function stopAutoRefresh() {
+        if (refreshInterval) {
+            clearInterval(refreshInterval);
+            refreshInterval = null;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        updateLastUpdateTime();
+        startAutoRefresh();
+
+        // Handle auto-refresh checkbox
+        document.getElementById('autoRefresh').addEventListener('change', function () {
+            if (this.checked) {
+                startAutoRefresh();
+            } else {
+                stopAutoRefresh();
+            }
+        });
+
+        // Update time display every second
+        setInterval(updateLastUpdateTime, 1000);
+    });
+</script>
+{% endblock %}

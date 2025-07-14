@@ -1,87 +1,229 @@
 {% extends "base.html" %}
 
-{% block title %}Detalhes da Encomenda - Entregas na Vila{% endblock %}
+{% block title %}Detalhes da Encomenda #{{ order.id }}{% endblock %}
 
 {% block content %}
-<div class="card">
-    <h2>Detalhes da Encomenda #{{ order.id }}</h2>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h2 class="mb-4">Encomenda #{{ order.id }}</h2>
 
-    <div class="grid">
-        <div>
-            <h3>Informação da Encomenda</h3>
-            <p><strong>Data:</strong> {{ order.order_date }}</p>
-            <p><strong>Estado:</strong> <span class="status status-{{ order.status }}">{{ order.status.replace('_', ' ')
-                    }}</span></p>
-            <p><strong>Valor Total:</strong> €{{ "%.2f"|format(order.total_amount) }}</p>
-            <p><strong>Morada de Entrega:</strong> {{ order.delivery_address }}</p>
-            {% if order.observations %}
-            <p><strong>Instruções Especiais:</strong> {{ order.observations }}</p>
-            {% endif %}
+            <!-- Detalhes da Encomenda -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Informações da Encomenda</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Restaurante:</strong> {{ order.restaurant_name }}</p>
+                            <p><strong>Data da Encomenda:</strong> {{ order.order_date[8:10] }}/{{ order.order_date[5:7]
+                                }}/{{ order.order_date[:4] }} às {{ order.order_date[11:16] }}</p>
+                            <p><strong>Estado:</strong>
+                                <span class="status-svg {{ order.status }}">
+                                    <svg>
+                                        {% if order.status == 'pending' %}
+                                        <use href="#icon-pending" />
+                                        {% elif order.status == 'confirmed' %}
+                                        <use href="#icon-confirmed" />
+                                        {% elif order.status == 'preparing' %}
+                                        <use href="#icon-preparing" />
+                                        {% elif order.status == 'out_for_delivery' %}
+                                        <use href="#icon-delivery" />
+                                        {% elif order.status == 'delivered' %}
+                                        <use href="#icon-delivered" />
+                                        {% elif order.status == 'cancelled' %}
+                                        <use href="#icon-cancelled" />
+                                        {% endif %}
+                                    </svg>
+                                    {% if order.status == 'pending' %}Pendente
+                                    {% elif order.status == 'confirmed' %}Confirmado
+                                    {% elif order.status == 'preparing' %}A Preparar
+                                    {% elif order.status == 'out_for_delivery' %}Em Entrega
+                                    {% elif order.status == 'delivered' %}Entregue
+                                    {% elif order.status == 'cancelled' %}Cancelado
+                                    {% else %}{{ order.status }}{% endif %}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Cliente:</strong> {{ order.customer_username }}</p>
+                            <p><strong>Morada de Entrega:</strong> {{ order.delivery_address }}</p>
+                            {% if order.observations %}
+                            <p><strong>Observações:</strong> {{ order.observations }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Itens da Encomenda -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Itens da Encomenda</h5>
+                </div>
+                <div class="card-body">
+                    {% if order_items %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Quantidade</th>
+                                    <th>Preço Unitário</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order_items %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if item.image_path %}
+                                            <img src="{{ url_for('static', filename=item.image_path) }}"
+                                                alt="{{ item.name }}"
+                                                style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;"
+                                                class="mr-3">
+                                            {% else %}
+                                            <div class="bg-light d-flex align-items-center justify-content-center mr-3"
+                                                style="width: 50px; height: 50px; border-radius: 5px;">
+                                                <i class="fas fa-utensils text-muted"></i>
+                                            </div>
+                                            {% endif %}
+                                            <div>
+                                                <strong>{{ item.name }}</strong>
+                                                {% if item.description %}
+                                                <br><small class="text-muted">{{ item.description[:50] }}{% if
+                                                    item.description|length > 50 %}...{% endif %}</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td>€{{ "%.2f"|format(item.price) }}</td>
+                                    <td>€{{ "%.2f"|format(item.price * item.quantity) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-right"><strong>Total:</strong></td>
+                                    <td><strong>€{{ "%.2f"|format(order.total_amount) }}</strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">Nenhum item encontrado para esta encomenda.</p>
+                    {% endif %}
+                </div>
+            </div>
         </div>
 
-        <div>
-            <h3>Informação do {% if session.user_type == 'customer' %}Restaurante{% else %}Cliente{% endif %}</h3>
-            {% if session.user_type == 'customer' %}
-            <p><strong>Restaurante:</strong> {{ order.restaurant_name or order.restaurant_username }}</p>
-            {% else %}
-            <p><strong>Cliente:</strong> {{ order.customer_username }}</p>
-            {% endif %}
+        <div class="col-md-4">
+            <!-- Ações -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Ações</h5>
+                </div>
+                <div class="card-body">
+                    {% if session.user_type == 'restaurant' %}
+                    <!-- Status Update Buttons for Restaurant -->
+                    {% if order.status != 'delivered' and order.status != 'cancelled' %}
+                    <div class="mb-3">
+                        <h6>Atualizar Estado da Encomenda:</h6>
+                        {% if order.status == 'pending' %}
+                        <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}"
+                            style="display: inline;">
+                            <input type="hidden" name="status" value="confirmed">
+                            <button type="submit" class="btn btn-success btn-block mb-2">
+                                <i class="fas fa-check"></i> Confirmar Encomenda
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        {% if order.status == 'confirmed' %}
+                        <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}"
+                            style="display: inline;">
+                            <input type="hidden" name="status" value="preparing">
+                            <button type="submit" class="btn btn-warning btn-block mb-2">
+                                <i class="fas fa-utensils"></i> A Preparar
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        {% if order.status == 'preparing' %}
+                        <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}"
+                            style="display: inline;">
+                            <input type="hidden" name="status" value="out_for_delivery">
+                            <button type="submit" class="btn btn-info btn-block mb-2">
+                                <i class="fas fa-truck"></i> Em Entrega
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        {% if order.status == 'out_for_delivery' %}
+                        <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}"
+                            style="display: inline;">
+                            <input type="hidden" name="status" value="delivered">
+                            <button type="submit" class="btn btn-success btn-block mb-2">
+                                <i class="fas fa-check-circle"></i> Entregue
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        {% if order.status == 'pending' %}
+                        <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}"
+                            style="display: inline;">
+                            <input type="hidden" name="status" value="cancelled">
+                            <button type="submit" class="btn btn-danger btn-block mb-2"
+                                onclick="return confirm('Tem certeza que deseja cancelar esta encomenda?')">
+                                <i class="fas fa-times"></i> Cancelar Encomenda
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <a href="{{ url_for('restaurant_orders') }}" class="btn btn-outline-secondary btn-block mb-2">
+                        <i class="fas fa-list"></i> Voltar às Encomendas
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('order_history') }}" class="btn btn-outline-secondary btn-block mb-2">
+                        <i class="fas fa-history"></i> Voltar ao Histórico
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Informações de Contacto -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Informações de Contacto</h5>
+                </div>
+                <div class="card-body">
+                    {% if session.user_type == 'restaurant' %}
+                    <p><strong>Cliente:</strong> {{ order.customer_username }}</p>
+                    {% if order.customer_phone %}
+                    <p><strong>Telefone do Cliente:</strong> {{ order.customer_phone }}</p>
+                    {% endif %}
+                    <p><strong>Morada de Entrega:</strong> {{ order.delivery_address }}</p>
+                    {% if order.observations %}
+                    <p><strong>Observações:</strong> {{ order.observations }}</p>
+                    {% endif %}
+                    {% else %}
+                    <p><strong>Restaurante:</strong> {{ order.restaurant_name }}</p>
+                    {% if order.restaurant_phone %}
+                    <p><strong>Telefone do Restaurante:</strong> {{ order.restaurant_phone }}</p>
+                    {% endif %}
+                    <p><strong>Morada de Entrega:</strong> {{ order.delivery_address }}</p>
+                    {% if order.observations %}
+                    <p><strong>Observações:</strong> {{ order.observations }}</p>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
         </div>
-    </div>
-
-    <h3>Itens da Encomenda</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>Item</th>
-                <th>Quantidade</th>
-                <th>Preço</th>
-                <th>Subtotal</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in order_items %}
-            <tr>
-                <td>{{ item.menu_item_name }}</td>
-                <td>{{ item.quantity }}</td>
-                <td>€{{ "%.2f"|format(item.price) }}</td>
-                <td>€{{ "%.2f"|format(item.price * item.quantity) }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-        <tfoot>
-            <tr>
-                <th colspan="3">Total:</th>
-                <th>€{{ "%.2f"|format(order.total_amount) }}</th>
-            </tr>
-        </tfoot>
-    </table>
-
-    <div class="mt-20">
-        {% if session.user_type == 'customer' %}
-        <a href="{{ url_for('order_history') }}" class="btn">← Voltar ao Histórico</a>
-        {% else %}
-        <a href="{{ url_for('restaurant_dashboard') }}" class="btn">← Voltar ao Painel</a>
-
-        {% if order.status == 'pending' %}
-        <a href="{{ url_for('update_order_status', order_id=order.id, status='confirmed') }}"
-            class="btn btn-success">Confirmar Encomenda</a>
-        {% elif order.status == 'confirmed' %}
-        <a href="{{ url_for('update_order_status', order_id=order.id, status='preparing') }}"
-            class="btn btn-warning">Começar a Preparar</a>
-        {% elif order.status == 'preparing' %}
-        <a href="{{ url_for('update_order_status', order_id=order.id, status='out_for_delivery') }}"
-            class="btn btn-warning">Em Entrega</a>
-        {% elif order.status == 'out_for_delivery' %}
-        <a href="{{ url_for('update_order_status', order_id=order.id, status='delivered') }}"
-            class="btn btn-success">Marcar como Entregue</a>
-        {% endif %}
-
-        {% if order.status in ['pending', 'confirmed'] %}
-        <a href="{{ url_for('update_order_status', order_id=order.id, status='cancelled') }}" class="btn btn-danger"
-            onclick="return confirm('Tem a certeza que quer cancelar esta encomenda?')">Cancelar Encomenda</a>
-        {% endif %}
-        {% endif %}
     </div>
 </div>
 {% endblock %}

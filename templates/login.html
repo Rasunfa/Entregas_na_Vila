@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Entrar - Entregas na Vila{% endblock %}
+{% block title %}Iniciar Sessão - Entregas na Vila{% endblock %}
 
 {% block content %}
 <div class="welcome-card">
-    <h2>Entrar</h2>
+    <h2>Iniciar Sessão</h2>
     <form method="POST">
         <div class="form-group">
             <label for="username">Nome de utilizador:</label>
@@ -16,13 +16,17 @@
             <input type="password" id="password" name="password" required>
         </div>
 
+
+
+        <!-- reCAPTCHA -->
         <div class="form-group">
             <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"></div>
         </div>
 
-        <button type="submit" class="btn btn-success">Entrar</button>
-        <a href="{{ url_for('register') }}" class="btn">Não tem conta? Registar</a>
+        <button type="submit" class="btn btn-success">Iniciar Sessão</button>
+        <a href="{{ url_for('register') }}" class="btn">Não tem conta? Criar Conta</a>
     </form>
 </div>
+
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 {% endblock %}
