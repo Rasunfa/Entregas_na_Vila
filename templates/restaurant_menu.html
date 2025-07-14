@@ -121,6 +121,13 @@
                             style="max-width: 280px; max-height: 280px; display: block; margin-bottom: 10px; object-fit: cover;">
                         {% endif %}
                         <h4>{{ item.name }}</h4>
+                        <div class="mb-2">
+                            {% if item.available %}
+                            <span class="badge badge-success"><i class="fas fa-check-circle"></i> Disponível</span>
+                            {% else %}
+                            <span class="badge badge-danger"><i class="fas fa-times-circle"></i> Indisponível</span>
+                            {% endif %}
+                        </div>
                         {% if item.description %}
                         <p>{{ item.description }}</p>
                         {% endif %}

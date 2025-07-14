@@ -557,20 +557,22 @@ def update_cart_quantity(item_id, quantity):
 def view_cart():
     cart_items = session.get('cart', [])
     
-    # Fetch image information for cart items
+    # Fetch image and availability information for cart items
     if cart_items:
         conn = get_db_connection()
         menu_item_ids = [item['menu_item_id'] for item in cart_items]
         placeholders = ','.join(['?' for _ in menu_item_ids])
-        menu_items_with_images = conn.execute(f'SELECT id, image_path FROM menu_items WHERE id IN ({placeholders})', menu_item_ids).fetchall()
+        menu_items_info = conn.execute(f'SELECT id, image_path, available FROM menu_items WHERE id IN ({placeholders})', menu_item_ids).fetchall()
         conn.close()
         
         # Create a dictionary for quick lookup
-        image_lookup = {item['id']: item['image_path'] for item in menu_items_with_images}
+        info_lookup = {item['id']: {'image_path': item['image_path'], 'available': item['available']} for item in menu_items_info}
         
-        # Add image information to cart items
+        # Add image and availability information to cart items
         for item in cart_items:
-            item['image_path'] = image_lookup.get(item['menu_item_id'])
+            info = info_lookup.get(item['menu_item_id'], {})
+            item['image_path'] = info.get('image_path')
+            item['available'] = info.get('available', 1)  # Default to available if missing
     
     subtotal = sum(item['price'] * item['quantity'] for item in cart_items)
     delivery_fee = 2.50  # Fixed delivery fee
