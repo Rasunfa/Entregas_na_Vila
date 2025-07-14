@@ -101,10 +101,18 @@
     </div>
     {% else %}
     <div class="text-center">
-        <i class="fas fa-shopping-cart fa-5x text-muted mb-3"></i>
-        <h4 class="text-muted">O seu carrinho está vazio</h4>
-        <p class="text-muted">Adicione alguns itens deliciosos ao seu carrinho!</p>
-        <a href="{{ url_for('customer_dashboard') }}" class="btn btn-primary">Explorar Restaurantes</a>
+        <div class="empty-cart-container" style="max-width: 600px; margin: 0 auto; padding: 60px 20px;">
+            <div class="empty-cart-icon" style="font-size: 80px; color: #6c757d; margin-bottom: 30px;">
+                <i class="fas fa-shopping-basket"></i>
+            </div>
+            <div class="empty-cart-text">
+                <h3>O seu carrinho está vazio</h3>
+                <p>Adicione alguns itens deliciosos ao seu carrinho!</p>
+                <a href="{{ url_for('customer_dashboard') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-utensils"></i> &nbsp;Explorar Restaurantes
+                </a>
+            </div>
+        </div>
     </div>
     {% endif %}
 </div>

@@ -12,6 +12,17 @@
         <p class="welcome-message">A sua plataforma de entregas de comida local. Rápido, fácil e seguro.</p>
         <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">Entrar</a>
     </div>
+
+    <!-- Animated Delivery Truck -->
+    <div class="delivery-truck-container">
+        <div class="delivery-truck-svg">
+            {% include 'delivery_truck_svg.html' %}
+        </div>
+        <div class="delivery-truck-text">
+            <h3>Entregas Rápidas</h3>
+            <p>O seu pedido chega em tempo recorde!</p>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
